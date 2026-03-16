@@ -1,11 +1,12 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "npm-9_x"]
+nixPkgs = ["nodejs_18", "npm-9_x"]
 
 [phases.install]
 cmds = ["npm install"]
 
 [phases.build]
-cmds = []
+cmds = ["echo done"]
 
 [start]
 cmd = "node backend/server.js"
+```
