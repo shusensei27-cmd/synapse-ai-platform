@@ -5,7 +5,7 @@
 // ════════════════════════════════════
 window.SYNAPSE_API = window.location.hostname === 'localhost'
   ? 'http://localhost:3001/api'
-  : 'surprising-connection-production-ffbe.up.railway.app'; // <-- Set your Render URL here
+  : 'https://surprising-connection-production-ffbe.up.railway.app/api'; // <-- Set your Render URL here
 
 const SUPABASE_URL = 'https://fkyuvapmeiezilwnqrcn.supabase.co';     // <-- Set your Supabase URL
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreXV2YXBtZWllemlsd25xcmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDgyMTAsImV4cCI6MjA4OTIyNDIxMH0.7PjJX5IRb-xU7IPlamlnuVy05nbZD59PlgqktbyewMM';   // <-- Set your Supabase anon key
