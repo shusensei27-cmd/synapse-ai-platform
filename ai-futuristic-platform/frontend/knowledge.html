@@ -5,281 +5,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SYNAPSE — Knowledge Base</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
-      --cyan: #00f5ff;
-      --violet: #7b2fff;
-      --magenta: #ff2d78;
-      --green: #00e676;
-      --bg: #040810;
-      --panel: rgba(8,18,38,0.8);
-      --glass: rgba(10,22,48,0.6);
-      --b1: rgba(0,245,255,0.12);
-      --b2: rgba(0,245,255,0.4);
-      --t1: #e2eeff;
-      --t2: rgba(170,200,240,0.7);
-      --t3: rgba(100,140,190,0.5);
-      --fd: 'Orbitron', sans-serif;
-      --fm: 'Share Tech Mono', monospace;
-      --fb: 'Inter', sans-serif;
+      --cyan:#00f5ff; --cdim:#00b8c4; --violet:#7b2fff;
+      --magenta:#ff2d78; --green:#00e676;
+      --bg:#040810; --panel:rgba(8,18,38,0.8); --glass:rgba(10,22,48,0.6);
+      --b1:rgba(0,245,255,0.12); --b2:rgba(0,245,255,0.4);
+      --t1:#e2eeff; --t2:rgba(170,200,240,0.7); --t3:rgba(100,140,190,0.5);
+      --fd:'Orbitron',sans-serif; --fm:'Share Tech Mono',monospace; --fb:'Inter',sans-serif;
+      --r:12px; --rs:8px;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--t1);font-family:var(--fb);min-height:100vh}
+    .gbg{position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:48px 48px}
+    .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:32px 20px 80px}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--t1); font-family: var(--fb); min-height: 100vh; }
+    /* HEADER */
+    .hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+    .hdr h1{font-family:var(--fd);font-size:1.3rem;font-weight:900;letter-spacing:0.2em;background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hdr p{font-family:var(--fm);font-size:0.6rem;letter-spacing:0.15em;color:var(--t3);margin-top:5px}
+    .btn-back{display:flex;align-items:center;gap:7px;padding:9px 16px;text-decoration:none;background:rgba(0,245,255,0.06);border:1px solid var(--b1);border-radius:var(--rs);color:var(--cdim);font-family:var(--fm);font-size:0.7rem;letter-spacing:0.1em;transition:all .2s;white-space:nowrap}
+    .btn-back:hover{background:rgba(0,245,255,0.12);border-color:var(--b2);color:var(--cyan)}
 
-    .grid-bg {
-      position: fixed; inset: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-    }
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+    @media(max-width:580px){.stats{grid-template-columns:repeat(2,1fr)}}
+    .sbox{background:var(--glass);border:1px solid var(--b1);border-radius:var(--rs);padding:16px 12px;text-align:center;backdrop-filter:blur(16px)}
+    .sn{font-family:var(--fd);font-size:1.5rem;font-weight:900;color:var(--cyan);display:block}
+    .sl{font-family:var(--fm);font-size:0.56rem;letter-spacing:0.15em;color:var(--t3);margin-top:4px;display:block}
 
-    .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+    /* TOOLBAR */
+    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .sbox2{flex:1;min-width:170px;position:relative}
+    .sbox2 svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none}
+    .sinput{width:100%;padding:10px 14px 10px 38px;background:var(--panel);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t1);font-family:var(--fb);font-size:0.85rem;outline:none;transition:all .2s}
+    .sinput::placeholder{color:var(--t3)}
+    .sinput:focus{border-color:var(--b2);box-shadow:0 0 0 1px rgba(0,245,255,0.1)}
+    select.fsel{padding:10px 12px;background:var(--panel);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-family:var(--fm);font-size:0.68rem;outline:none;cursor:pointer;transition:all .2s}
+    select.fsel:focus{border-color:var(--b2)}
+    select.fsel option{background:#0a1628}
+    .btn-add{display:flex;align-items:center;gap:7px;padding:10px 16px;cursor:pointer;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(123,47,255,0.1));border:1px solid var(--b2);border-radius:var(--rs);color:var(--cyan);font-family:var(--fm);font-size:0.68rem;letter-spacing:0.08em;transition:all .2s;white-space:nowrap}
+    .btn-add:hover{background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(123,47,255,0.2))}
 
-    /* ── HEADER ── */
-    .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-    .top h1 {
-      font-family: var(--fd); font-size: 1.3rem; font-weight: 900; letter-spacing: 0.2em;
-      background: linear-gradient(135deg, var(--cyan), var(--violet));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .top p { font-family: var(--fm); font-size: 0.6rem; letter-spacing: 0.15em; color: var(--t3); margin-top: 5px; }
-    .btn-back {
-      display: flex; align-items: center; gap: 7px;
-      padding: 9px 16px; text-decoration: none;
-      background: rgba(0,245,255,0.06); border: 1px solid var(--b1);
-      border-radius: 8px; color: #00b8c4;
-      font-family: var(--fm); font-size: 0.7rem; letter-spacing: 0.1em;
-      transition: all .2s; white-space: nowrap;
-    }
-    .btn-back:hover { background: rgba(0,245,255,0.12); border-color: var(--b2); color: var(--cyan); }
+    /* ADD FORM */
+    #addForm{display:none;background:var(--glass);border:1px solid var(--b2);border-radius:var(--r);padding:24px;margin-bottom:18px;backdrop-filter:blur(20px);animation:fi .25s ease}
+    #addForm.show{display:block}
+    @keyframes fi{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    #addForm h3{font-family:var(--fd);font-size:0.68rem;letter-spacing:0.2em;color:var(--cyan);margin-bottom:16px}
+    .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+    .fl{font-family:var(--fm);font-size:0.58rem;letter-spacing:0.12em;color:var(--t3)}
+    .fi,.ft{background:rgba(0,0,0,0.35);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t1);font-family:var(--fb);font-size:0.85rem;padding:10px 14px;outline:none;width:100%;transition:all .2s}
+    .fi:focus,.ft:focus{border-color:var(--b2)}
+    .ft{resize:vertical;min-height:110px;line-height:1.55}
+    .f2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:500px){.f2col{grid-template-columns:1fr}}
+    .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
+    .btn-cx{padding:9px 18px;background:transparent;border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-family:var(--fm);font-size:0.68rem;cursor:pointer;transition:all .15s}
+    .btn-cx:hover{border-color:var(--b2)}
+    .btn-sv{display:flex;align-items:center;gap:7px;padding:9px 20px;cursor:pointer;background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;border-radius:var(--rs);color:#fff;font-family:var(--fm);font-size:0.68rem;letter-spacing:0.08em;transition:all .2s}
+    .btn-sv:hover{box-shadow:0 0 18px rgba(0,245,255,0.25);transform:translateY(-1px)}
+    .btn-sv:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 
-    /* ── STATS ── */
-    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
-    @media(max-width:600px) { .stats { grid-template-columns: repeat(2,1fr); } }
-    .stat-box {
-      background: var(--glass); border: 1px solid var(--b1);
-      border-radius: 10px; padding: 16px 12px; text-align: center;
-      backdrop-filter: blur(16px);
-    }
-    .stat-box .n { font-family: var(--fd); font-size: 1.6rem; font-weight: 900; color: var(--cyan); display: block; }
-    .stat-box .l { font-family: var(--fm); font-size: 0.56rem; letter-spacing: 0.15em; color: var(--t3); margin-top: 4px; display: block; }
+    /* RESULT INFO */
+    .ri{font-family:var(--fm);font-size:0.65rem;letter-spacing:0.08em;color:var(--t3);margin-bottom:10px}
+    .ri b{color:var(--cyan);font-weight:400}
 
-    /* ── TOOLBAR ── */
-    .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-    .search-box { flex: 1; min-width: 180px; position: relative; }
-    .search-box svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--t3); pointer-events: none; }
-    .search-box input {
-      width: 100%; padding: 10px 14px 10px 40px;
-      background: var(--panel); border: 1px solid var(--b1);
-      border-radius: 8px; color: var(--t1); font-family: var(--fb);
-      font-size: 0.85rem; outline: none; transition: all .2s;
-    }
-    .search-box input::placeholder { color: var(--t3); }
-    .search-box input:focus { border-color: var(--b2); box-shadow: 0 0 0 1px rgba(0,245,255,0.1); }
-    select.sel {
-      padding: 10px 12px; background: var(--panel);
-      border: 1px solid var(--b1); border-radius: 8px;
-      color: var(--t2); font-family: var(--fm); font-size: 0.68rem;
-      outline: none; cursor: pointer; transition: all .2s;
-    }
-    select.sel:focus { border-color: var(--b2); }
-    select.sel option { background: #0a1628; }
-    .btn-add {
-      display: flex; align-items: center; gap: 7px;
-      padding: 10px 16px; cursor: pointer;
-      background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(123,47,255,0.1));
-      border: 1px solid var(--b2); border-radius: 8px;
-      color: var(--cyan); font-family: var(--fm);
-      font-size: 0.68rem; letter-spacing: 0.08em;
-      transition: all .2s; white-space: nowrap;
-    }
-    .btn-add:hover { background: linear-gradient(135deg, rgba(0,245,255,0.2), rgba(123,47,255,0.2)); }
+    /* TABLE */
+    .tbox{background:var(--glass);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;backdrop-filter:blur(20px)}
+    table{width:100%;border-collapse:collapse}
+    thead{background:rgba(0,245,255,0.05);border-bottom:1px solid var(--b1)}
+    th{padding:12px 14px;text-align:left;font-family:var(--fm);font-size:0.6rem;letter-spacing:0.15em;color:var(--cdim);font-weight:400;white-space:nowrap}
+    tbody tr{border-bottom:1px solid rgba(0,245,255,0.05);transition:background .15s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:rgba(0,245,255,0.03)}
+    td{padding:12px 14px;font-size:0.83rem;color:var(--t2);vertical-align:top}
+    .tno{font-family:var(--fm);font-size:0.6rem;color:var(--t3);width:36px}
+    .tq{color:var(--t1);font-weight:500;max-width:230px;word-break:break-word}
+    .ta{max-width:320px;line-height:1.5;word-break:break-word}
+    .bdg{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--fm);font-size:0.62rem;font-weight:600;white-space:nowrap}
+    .bhi{background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+    .bmi{background:rgba(0,245,255,0.07);color:var(--cdim);border:1px solid rgba(0,245,255,0.18)}
+    .blo{background:rgba(255,45,120,0.08);color:var(--magenta);border:1px solid rgba(255,45,120,0.2)}
+    .btn-eye{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.15);border-radius:6px;color:var(--cdim);cursor:pointer;transition:all .15s}
+    .btn-eye:hover{background:rgba(0,245,255,0.13);border-color:var(--b2)}
+    .lc{text-align:center;padding:48px;font-family:var(--fm);font-size:0.7rem;color:var(--t3);letter-spacing:0.12em}
+    .ec{text-align:center;padding:52px 20px}
+    .ec .ei{font-size:2.5rem;display:block;margin-bottom:12px;opacity:.35}
+    .ec p{font-family:var(--fm);font-size:0.7rem;letter-spacing:0.1em;color:var(--t3)}
 
-    /* ── ADD FORM ── */
-    #addForm {
-      display: none; background: var(--glass);
-      border: 1px solid var(--b2); border-radius: 12px;
-      padding: 24px; margin-bottom: 18px;
-      backdrop-filter: blur(20px);
-      animation: slideIn .25s ease;
-    }
-    #addForm.show { display: block; }
-    @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
-    #addForm h3 { font-family: var(--fd); font-size: 0.68rem; letter-spacing: 0.2em; color: var(--cyan); margin-bottom: 16px; }
-    .fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-    .fl { font-family: var(--fm); font-size: 0.58rem; letter-spacing: 0.12em; color: var(--t3); }
-    .fi, .ft {
-      background: rgba(0,0,0,0.35); border: 1px solid var(--b1);
-      border-radius: 8px; color: var(--t1);
-      font-family: var(--fb); font-size: 0.85rem;
-      padding: 10px 14px; outline: none; width: 100%; transition: all .2s;
-    }
-    .fi:focus, .ft:focus { border-color: var(--b2); }
-    .ft { resize: vertical; min-height: 110px; line-height: 1.55; }
-    .form2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media(max-width:500px) { .form2col { grid-template-columns: 1fr; } }
-    .form-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
-    .btn-cx {
-      padding: 9px 18px; background: transparent;
-      border: 1px solid var(--b1); border-radius: 8px;
-      color: var(--t2); font-family: var(--fm); font-size: 0.68rem;
-      cursor: pointer; transition: all .15s;
-    }
-    .btn-cx:hover { border-color: var(--b2); }
-    .btn-sv {
-      display: flex; align-items: center; gap: 7px;
-      padding: 9px 20px; cursor: pointer;
-      background: linear-gradient(135deg, var(--cyan), var(--violet));
-      border: none; border-radius: 8px;
-      color: #fff; font-family: var(--fm);
-      font-size: 0.68rem; letter-spacing: 0.08em;
-      transition: all .2s;
-    }
-    .btn-sv:hover { box-shadow: 0 0 18px rgba(0,245,255,0.25); transform: translateY(-1px); }
-    .btn-sv:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    /* PAGINATION */
+    .pag{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--b1);flex-wrap:wrap;gap:8px}
+    .pi{font-family:var(--fm);font-size:0.62rem;color:var(--t3)}
+    .pb2{display:flex;gap:4px}
+    .pb{padding:5px 10px;background:var(--panel);border:1px solid var(--b1);border-radius:6px;color:var(--t2);font-family:var(--fm);font-size:0.62rem;cursor:pointer;transition:all .15s}
+    .pb:hover:not(:disabled){border-color:var(--b2);color:var(--cyan)}
+    .pb.on{background:rgba(0,245,255,0.1);border-color:var(--b2);color:var(--cyan)}
+    .pb:disabled{opacity:.3;cursor:not-allowed}
 
-    /* ── RESULT INFO ── */
-    .rinfo { font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.08em; color: var(--t3); margin-bottom: 10px; }
-    .rinfo b { color: var(--cyan); font-weight: 400; }
+    /* CLEAR CHAT */
+    .ccsec{margin-top:36px;padding:24px;background:rgba(255,45,120,0.04);border:1px solid rgba(255,45,120,0.18);border-radius:var(--r)}
+    .cchd{font-family:var(--fd);font-size:0.68rem;font-weight:700;letter-spacing:0.2em;color:var(--magenta);margin-bottom:8px}
+    .ccsub{font-size:0.82rem;color:var(--t2);line-height:1.6;margin-bottom:20px}
+    .ccsub strong{color:var(--t1)}
+    .ccgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+    .cccard{background:rgba(0,0,0,0.22);border:1px solid rgba(255,45,120,0.1);border-radius:var(--rs);padding:16px}
+    .cccard h4{font-size:0.82rem;font-weight:500;color:var(--t1);margin-bottom:5px}
+    .cccard p{font-size:0.74rem;color:var(--t3);line-height:1.5;margin-bottom:14px}
+    .btn-del{width:100%;padding:9px 14px;display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(255,45,120,0.08);border:1px solid rgba(255,45,120,0.22);border-radius:var(--rs);color:var(--magenta);font-family:var(--fm);font-size:0.65rem;letter-spacing:0.08em;cursor:pointer;transition:all .2s}
+    .btn-del:hover{background:rgba(255,45,120,0.16);border-color:rgba(255,45,120,0.4)}
 
-    /* ── TABLE ── */
-    .tbox {
-      background: var(--glass); border: 1px solid var(--b1);
-      border-radius: 12px; overflow: hidden;
-      backdrop-filter: blur(20px);
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead { background: rgba(0,245,255,0.05); border-bottom: 1px solid var(--b1); }
-    th {
-      padding: 12px 14px; text-align: left;
-      font-family: var(--fm); font-size: 0.6rem;
-      letter-spacing: 0.15em; color: #00b8c4; font-weight: 400;
-      white-space: nowrap;
-    }
-    tbody tr { border-bottom: 1px solid rgba(0,245,255,0.05); transition: background .15s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(0,245,255,0.03); }
-    td { padding: 12px 14px; font-size: 0.83rem; color: var(--t2); vertical-align: top; }
-    .td-num { font-family: var(--fm); font-size: 0.6rem; color: var(--t3); width: 36px; }
-    .td-q { color: var(--t1); font-weight: 500; max-width: 240px; word-break: break-word; }
-    .td-a { max-width: 340px; line-height: 1.5; word-break: break-word; }
+    /* MODAL */
+    .ov{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px}
+    .ov.off{display:none}
+    .mbox{background:#060d1c;border:1px solid var(--b1);border-radius:var(--r);padding:28px;max-width:460px;width:100%;animation:fi .2s ease}
+    .mbox.wide{max-width:560px}
+    .mh{font-family:var(--fd);font-size:0.84rem;font-weight:700;letter-spacing:0.15em;margin-bottom:12px}
+    .mh.d{color:var(--magenta)} .mh.i{color:var(--cyan)}
+    .mb2{font-size:0.83rem;color:var(--t2);line-height:1.65;margin-bottom:22px}
+    .mans{background:rgba(0,245,255,0.04);border:1px solid var(--b1);border-radius:var(--rs);padding:14px;max-height:250px;overflow-y:auto;font-size:0.82rem;line-height:1.6;color:var(--t2);white-space:pre-wrap;margin-top:10px;margin-bottom:20px}
+    .mft{display:flex;gap:10px;justify-content:flex-end}
+    .bno{padding:9px 18px;background:transparent;border:1px solid var(--b1);border-radius:var(--rs);color:var(--t2);font-family:var(--fm);font-size:0.68rem;cursor:pointer;transition:all .15s}
+    .bno:hover{border-color:var(--b2)}
+    .byes{padding:9px 18px;background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.3);border-radius:var(--rs);color:var(--magenta);font-family:var(--fm);font-size:0.68rem;cursor:pointer;transition:all .15s}
+    .byes:hover{background:rgba(255,45,120,0.2)}
 
-    .badge {
-      display: inline-block; padding: 3px 10px;
-      border-radius: 20px; font-family: var(--fm);
-      font-size: 0.62rem; font-weight: 600; white-space: nowrap;
-    }
-    .b-hi { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
-    .b-mi { background: rgba(0,245,255,0.07); color: #00b8c4; border: 1px solid rgba(0,245,255,0.18); }
-    .b-lo { background: rgba(255,45,120,0.08); color: var(--magenta); border: 1px solid rgba(255,45,120,0.2); }
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 20px;border-radius:var(--rs);font-size:0.8rem;pointer-events:none;background:var(--glass);border:1px solid var(--b1);backdrop-filter:blur(20px);color:var(--t2);opacity:0;transform:translateX(14px);transition:all .28s}
+    #toast.show{opacity:1;transform:translateX(0)}
+    #toast.ok{border-color:rgba(0,230,118,0.45);color:var(--green)}
+    #toast.err{border-color:rgba(255,45,120,0.45);color:var(--magenta)}
 
-    .btn-see {
-      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-      background: rgba(0,245,255,0.06); border: 1px solid rgba(0,245,255,0.15);
-      border-radius: 6px; color: #00b8c4; cursor: pointer; transition: all .15s;
-    }
-    .btn-see:hover { background: rgba(0,245,255,0.14); border-color: var(--b2); }
-
-    .empty-cell { text-align: center; padding: 56px 20px; }
-    .empty-cell p { font-family: var(--fm); font-size: 0.7rem; letter-spacing: 0.1em; color: var(--t3); }
-    .empty-cell .ico { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: .35; }
-    .loading-cell { text-align: center; padding: 48px; font-family: var(--fm); font-size: 0.7rem; color: var(--t3); letter-spacing: 0.12em; }
-
-    /* ── PAGINATION ── */
-    .pag {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px; border-top: 1px solid var(--b1);
-      flex-wrap: wrap; gap: 8px;
-    }
-    .pag-info { font-family: var(--fm); font-size: 0.62rem; color: var(--t3); }
-    .pag-btns { display: flex; gap: 4px; }
-    .pb {
-      padding: 5px 10px; background: var(--panel);
-      border: 1px solid var(--b1); border-radius: 6px;
-      color: var(--t2); font-family: var(--fm); font-size: 0.62rem;
-      cursor: pointer; transition: all .15s;
-    }
-    .pb:hover:not(:disabled) { border-color: var(--b2); color: var(--cyan); }
-    .pb.on { background: rgba(0,245,255,0.1); border-color: var(--b2); color: var(--cyan); }
-    .pb:disabled { opacity: .3; cursor: not-allowed; }
-
-    /* ── CLEAR CHAT ── */
-    .cc {
-      margin-top: 36px; padding: 24px;
-      background: rgba(255,45,120,0.04);
-      border: 1px solid rgba(255,45,120,0.18);
-      border-radius: 12px;
-    }
-    .cc-hd { font-family: var(--fd); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em; color: var(--magenta); margin-bottom: 8px; }
-    .cc-sub { font-size: 0.82rem; color: var(--t2); line-height: 1.6; margin-bottom: 20px; }
-    .cc-sub strong { color: var(--t1); }
-    .cc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 12px; }
-    .cc-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,45,120,0.1); border-radius: 8px; padding: 16px; }
-    .cc-card h4 { font-size: 0.82rem; font-weight: 500; color: var(--t1); margin-bottom: 5px; }
-    .cc-card p { font-size: 0.74rem; color: var(--t3); line-height: 1.5; margin-bottom: 14px; }
-    .btn-del {
-      width: 100%; padding: 9px 14px;
-      display: flex; align-items: center; justify-content: center; gap: 7px;
-      background: rgba(255,45,120,0.08); border: 1px solid rgba(255,45,120,0.22);
-      border-radius: 8px; color: var(--magenta);
-      font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.08em;
-      cursor: pointer; transition: all .2s;
-    }
-    .btn-del:hover { background: rgba(255,45,120,0.16); border-color: rgba(255,45,120,0.4); }
-
-    /* ── MODAL ── */
-    .overlay {
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center; padding: 20px;
-    }
-    .overlay.off { display: none; }
-    .modal {
-      background: #060d1c; border: 1px solid var(--b1);
-      border-radius: 12px; padding: 28px; max-width: 460px; width: 100%;
-      animation: slideIn .2s ease;
-    }
-    .modal h3 { font-family: var(--fd); font-size: 0.84rem; font-weight: 700; letter-spacing: 0.15em; margin-bottom: 12px; }
-    .modal h3.d { color: var(--magenta); }
-    .modal h3.i { color: var(--cyan); }
-    .modal p { font-size: 0.83rem; color: var(--t2); line-height: 1.65; margin-bottom: 22px; }
-    .modal-answer { background: rgba(0,245,255,0.04); border: 1px solid var(--b1); border-radius: 8px; padding: 14px; max-height: 260px; overflow-y: auto; font-size: 0.82rem; line-height: 1.6; color: var(--t2); white-space: pre-wrap; margin-top: 10px; margin-bottom: 20px; }
-    .modal-foot { display: flex; gap: 10px; justify-content: flex-end; }
-    .btn-no { padding: 9px 18px; background: transparent; border: 1px solid var(--b1); border-radius: 8px; color: var(--t2); font-family: var(--fm); font-size: 0.68rem; cursor: pointer; transition: all .15s; }
-    .btn-no:hover { border-color: var(--b2); }
-    .btn-yes { padding: 9px 18px; background: rgba(255,45,120,0.1); border: 1px solid rgba(255,45,120,0.3); border-radius: 8px; color: var(--magenta); font-family: var(--fm); font-size: 0.68rem; cursor: pointer; transition: all .15s; }
-    .btn-yes:hover { background: rgba(255,45,120,0.2); }
-
-    /* ── TOAST ── */
-    #toast {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-      padding: 11px 20px; border-radius: 8px;
-      font-size: 0.8rem; pointer-events: none;
-      background: var(--glass); border: 1px solid var(--b1);
-      backdrop-filter: blur(20px); color: var(--t2);
-      opacity: 0; transform: translateX(14px);
-      transition: all .28s;
-    }
-    #toast.show { opacity: 1; transform: translateX(0); }
-    #toast.ok { border-color: rgba(0,230,118,0.45); color: var(--green); }
-    #toast.err { border-color: rgba(255,45,120,0.45); color: var(--magenta); }
-
-    @media(max-width:700px) {
-      thead { display: none; }
-      tbody tr { display: block; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--b1); border-radius: 8px; padding: 12px; }
-      td { display: block; padding: 4px 0; max-width: 100%; }
-      .td-num { display: none; }
+    @media(max-width:700px){
+      thead{display:none}
+      tbody tr{display:block;margin-bottom:10px;background:var(--panel);border:1px solid var(--b1);border-radius:var(--rs);padding:12px}
+      td{display:block;padding:4px 0;max-width:100%}
+      .tno{display:none}
     }
   </style>
 </head>
 <body>
-<div class="grid-bg"></div>
+<div class="gbg"></div>
 <div class="wrap">
 
-  <!-- TOP -->
-  <div class="top">
+  <!-- HEADER -->
+  <div class="hdr">
     <div>
       <h1>KNOWLEDGE BASE</h1>
       <p>SYNAPSE MEMORY BANK — SEMUA PERTANYAAN & JAWABAN AI</p>
@@ -292,13 +161,13 @@
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat-box"><span class="n" id="stTotal">—</span><span class="l">TOTAL MEMORI</span></div>
-    <div class="stat-box"><span class="n" id="stPos">—</span><span class="l">SKOR POSITIF</span></div>
-    <div class="stat-box"><span class="n" id="stNeg">—</span><span class="l">SKOR NEGATIF</span></div>
-    <div class="stat-box"><span class="n" id="stAcc">—</span><span class="l">AKURASI AI</span></div>
+    <div class="sbox"><span class="sn" id="stT">—</span><span class="sl">TOTAL MEMORI</span></div>
+    <div class="sbox"><span class="sn" id="stP">—</span><span class="sl">SKOR POSITIF</span></div>
+    <div class="sbox"><span class="sn" id="stN">—</span><span class="sl">SKOR NEGATIF</span></div>
+    <div class="sbox"><span class="sn" id="stA">—</span><span class="sl">AKURASI AI</span></div>
   </div>
 
-  <!-- ADD FORM -->
+  <!-- FORM TAMBAH PERTANYAAN -->
   <div id="addForm">
     <h3>+ TAMBAH PERTANYAAN & JAWABAN BARU</h3>
     <div class="fg">
@@ -309,7 +178,7 @@
       <label class="fl">JAWABAN LENGKAP *</label>
       <textarea class="ft" id="fA" placeholder="Tulis jawaban yang lengkap dan informatif..."></textarea>
     </div>
-    <div class="form2col">
+    <div class="f2col">
       <div class="fg">
         <label class="fl">SKOR AWAL (0–10)</label>
         <input class="fi" id="fS" type="number" value="5" min="0" max="10"/>
@@ -319,7 +188,7 @@
         <input class="fi" id="fN" type="text" placeholder="Misal: Wikipedia, buku pelajaran..."/>
       </div>
     </div>
-    <div class="form-btns">
+    <div class="fa">
       <button class="btn-cx" onclick="toggleForm()">Batal</button>
       <button class="btn-sv" id="btnSv" onclick="doSave()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
@@ -330,17 +199,17 @@
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <div class="search-box">
+    <div class="sbox2">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="qSearch" type="text" placeholder="Cari pertanyaan atau jawaban..." oninput="doFilter()"/>
+      <input class="sinput" id="qSearch" type="text" placeholder="Cari pertanyaan atau jawaban..." oninput="doFilter()"/>
     </div>
-    <select class="sel" id="selScore" onchange="doFilter()">
+    <select class="fsel" id="selScore" onchange="doFilter()">
       <option value="all">Semua Skor</option>
       <option value="pos">Skor Positif (≥1)</option>
       <option value="zero">Skor Netral (0)</option>
-      <option value="neg">Skor Negatif (≤-1)</option>
+      <option value="neg">Skor Negatif (≤−1)</option>
     </select>
-    <select class="sel" id="selSort" onchange="doFilter()">
+    <select class="fsel" id="selSort" onchange="doFilter()">
       <option value="sd">Skor Tertinggi</option>
       <option value="sa">Skor Terendah</option>
       <option value="new">Terbaru</option>
@@ -352,57 +221,57 @@
     </button>
   </div>
 
-  <div class="rinfo" id="rinfo">Memuat data...</div>
+  <div class="ri" id="ri">Memuat data...</div>
 
-  <!-- TABLE -->
+  <!-- TABEL -->
   <div class="tbox">
     <table>
       <thead>
         <tr>
-          <th class="td-num">#</th>
+          <th class="tno">#</th>
           <th style="min-width:200px">PERTANYAAN</th>
-          <th style="min-width:240px">JAWABAN (RINGKAS)</th>
+          <th style="min-width:230px">JAWABAN (RINGKAS)</th>
           <th>SKOR</th>
           <th>TANGGAL</th>
-          <th>LIHAT</th>
+          <th>DETAIL</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="6" class="loading-cell">⟳ MEMUAT DATA...</td></tr>
+        <tr><td colspan="6" class="lc">⟳ MEMUAT DATA DARI DATABASE...</td></tr>
       </tbody>
     </table>
     <div id="pagBox" class="pag" style="display:none">
-      <span class="pag-info" id="pagInfo"></span>
-      <div class="pag-btns" id="pagBtns"></div>
+      <span class="pi" id="pagI"></span>
+      <div class="pb2" id="pagB"></div>
     </div>
   </div>
 
   <!-- HAPUS RIWAYAT CHAT -->
-  <div class="cc">
-    <div class="cc-hd">🗑 BERSIHKAN RIWAYAT CHAT</div>
-    <div class="cc-sub">
+  <div class="ccsec">
+    <div class="cchd">🗑 BERSIHKAN RIWAYAT CHAT</div>
+    <div class="ccsub">
       Hapus riwayat percakapan untuk menghemat storage. <strong>Pengetahuan AI tidak terpengaruh</strong> — AI tetap pintar, hanya log percakapan yang dihapus.
     </div>
-    <div class="cc-grid">
-      <div class="cc-card">
+    <div class="ccgrid">
+      <div class="cccard">
         <h4>Chat Lebih dari 30 Hari</h4>
-        <p>Hapus riwayat percakapan lama (&gt;30 hari). Chat terbaru tetap tersimpan.</p>
+        <p>Hapus riwayat percakapan yang sudah lebih dari 30 hari. Chat terbaru tetap ada.</p>
         <button class="btn-del" onclick="askClear('30d')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS CHAT 30 HARI LALU
         </button>
       </div>
-      <div class="cc-card">
+      <div class="cccard">
         <h4>Chat Lebih dari 7 Hari</h4>
-        <p>Hapus riwayat percakapan lama (&gt;7 hari). Lebih banyak storage yang dibebaskan.</p>
+        <p>Hapus riwayat percakapan yang sudah lebih dari 7 hari. Lebih banyak storage dibebaskan.</p>
         <button class="btn-del" onclick="askClear('7d')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS CHAT 7 HARI LALU
         </button>
       </div>
-      <div class="cc-card">
+      <div class="cccard">
         <h4>Semua Riwayat Chat</h4>
-        <p>Hapus seluruh riwayat percakapan semua pengguna. Gunakan jika storage hampir penuh.</p>
+        <p>Hapus seluruh riwayat percakapan semua pengguna. Gunakan bila storage hampir penuh.</p>
         <button class="btn-del" onclick="askClear('all')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS SEMUA RIWAYAT CHAT
@@ -411,31 +280,31 @@
     </div>
   </div>
 
-</div><!-- /wrap -->
+</div>
 
-<!-- MODAL: Konfirmasi hapus chat -->
-<div class="overlay off" id="mClear">
-  <div class="modal">
-    <h3 class="d" id="mClearH">KONFIRMASI HAPUS</h3>
-    <p id="mClearP">Apakah kamu yakin?</p>
-    <div class="modal-foot">
-      <button class="btn-no" onclick="closeM('mClear')">Batal</button>
-      <button class="btn-yes" id="mClearOk">Ya, Hapus</button>
+<!-- MODAL konfirmasi hapus chat -->
+<div class="ov off" id="mClear">
+  <div class="mbox">
+    <div class="mh d" id="mCH">KONFIRMASI HAPUS</div>
+    <div class="mb2" id="mCP">Apakah kamu yakin?</div>
+    <div class="mft">
+      <button class="bno" onclick="closeM('mClear')">Batal</button>
+      <button class="byes" id="mCOk">Ya, Hapus</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: Lihat detail jawaban -->
-<div class="overlay off" id="mDetail">
-  <div class="modal" style="max-width:560px">
-    <h3 class="i" id="mDetQ">—</h3>
-    <div class="modal-answer" id="mDetA">—</div>
+<!-- MODAL lihat detail jawaban -->
+<div class="ov off" id="mDetail">
+  <div class="mbox wide">
+    <div class="mh i" id="mDQ">—</div>
+    <div class="mans" id="mDA">—</div>
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px">
-      <span id="mDetS" class="badge b-mi">SKOR: 0</span>
-      <span id="mDetD" style="font-family:var(--fm);font-size:0.62rem;color:var(--t3)"></span>
+      <span id="mDS" class="bdg bmi">SKOR: 0</span>
+      <span id="mDD" style="font-family:var(--fm);font-size:0.62rem;color:var(--t3)"></span>
     </div>
-    <div class="modal-foot">
-      <button class="btn-no" onclick="closeM('mDetail')">Tutup</button>
+    <div class="mft">
+      <button class="bno" onclick="closeM('mDetail')">Tutup</button>
     </div>
   </div>
 </div>
@@ -443,85 +312,81 @@
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-// KONFIGURASI — Isi dengan nilai dari app.js-mu
-// ══════════════════════════════════════════════
-const CFG = {
-  supabaseUrl:  'https://fkyuvapmeiezilwnqrcn.supabase.co',   // contoh: https://abcxyz.supabase.co
-  supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreXV2YXBtZWllemlsd25xcmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDgyMTAsImV4cCI6MjA4OTIyNDIxMH0.7PjJX5IRb-xU7IPlamlnuVy05nbZD59PlgqktbyewMM',  // anon/public key dari Supabase
-};
+// ══════════════════════════════════════════════════════
+// KONFIGURASI — Ganti dengan URL backend Railway-mu
+// ══════════════════════════════════════════════════════
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:3001/api'
+  : 'https://surprising-connection-production-ffbe.up.railway.app/api'; // ← UBAH INI
 
-// ══════════════════════════════════════════════
-// INISIALISASI SUPABASE
-// ══════════════════════════════════════════════
-const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnon);
-
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // STATE
-// ══════════════════════════════════════════════
-let allRows  = [];   // semua data dari database
-let filtered = [];   // setelah filter/search
+// ══════════════════════════════════════════════════════
+let allRows  = [];
+let filtered = [];
 let curPage  = 1;
-const PER_PAGE = 20;
-let pendingAction = null;
+const PER    = 20;
+let pending  = null;
 
-// ══════════════════════════════════════════════
-// LOAD DATA DARI DATABASE
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// LOAD DATA — via backend /api/memory
+// Tidak perlu Supabase key di frontend sama sekali!
+// ══════════════════════════════════════════════════════
 async function loadData() {
-  setTbody('<tr><td colspan="6" class="loading-cell">⟳ MEMUAT DATA DARI DATABASE...</td></tr>');
+  setBody('<tr><td colspan="6" class="lc">⟳ MEMUAT DATA DARI DATABASE...</td></tr>');
 
-  const { data, error } = await sb
-    .from('ai_memory')
-    .select('id, question, answer, score, created_at')
-    .order('score', { ascending: false });
+  try {
+    const res  = await fetch(API + '/memory');
+    const json = await res.json();
 
-  if (error) {
-    setTbody(`<tr><td colspan="6" class="loading-cell" style="color:var(--magenta)">❌ GAGAL MEMUAT: ${error.message}<br><br><small>Pastikan SUPABASE_URL dan SUPABASE_ANON sudah diisi dengan benar di file ini.</small></td></tr>`);
-    toast('Gagal memuat data: ' + error.message, 'err');
-    return;
+    if (!res.ok) throw new Error(json.error || 'Server error');
+
+    allRows = json.memories || [];
+    updateStats();
+    doFilter();
+    toast('✓ ' + allRows.length + ' data berhasil dimuat', 'ok');
+
+  } catch (e) {
+    setBody(`<tr><td colspan="6" class="lc" style="color:var(--magenta)">
+      ❌ GAGAL MEMUAT: ${e.message}<br><br>
+      <small>Pastikan URL backend sudah benar di bagian CONFIG file ini.</small>
+    </td></tr>`);
+    toast('Gagal memuat: ' + e.message, 'err');
   }
-
-  allRows = data || [];
-  updateStats();
-  doFilter();
-  toast('✓ ' + allRows.length + ' data berhasil dimuat', 'ok');
 }
 
-// ══════════════════════════════════════════════
-// UPDATE STATISTIK
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════
 function updateStats() {
   const pos = allRows.filter(r => r.score > 0).length;
   const neg = allRows.filter(r => r.score < 0).length;
-  const acc = allRows.length > 0 ? Math.round(pos / allRows.length * 100) : 0;
-  document.getElementById('stTotal').textContent = allRows.length.toLocaleString('id-ID');
-  document.getElementById('stPos').textContent   = pos.toLocaleString('id-ID');
-  document.getElementById('stNeg').textContent   = neg.toLocaleString('id-ID');
-  document.getElementById('stAcc').textContent   = acc + '%';
+  const acc = allRows.length ? Math.round(pos / allRows.length * 100) : 0;
+  document.getElementById('stT').textContent = allRows.length.toLocaleString('id-ID');
+  document.getElementById('stP').textContent = pos.toLocaleString('id-ID');
+  document.getElementById('stN').textContent = neg.toLocaleString('id-ID');
+  document.getElementById('stA').textContent = acc + '%';
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // FILTER + SORT + SEARCH
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function doFilter() {
   const q  = (document.getElementById('qSearch').value || '').toLowerCase().trim();
   const sc = document.getElementById('selScore').value;
   const so = document.getElementById('selSort').value;
 
   filtered = allRows.filter(r => {
-    const matchQ = !q || r.question.toLowerCase().includes(q) || r.answer.toLowerCase().includes(q);
-    const matchS = sc === 'all'  ? true
-                 : sc === 'pos'  ? r.score > 0
-                 : sc === 'zero' ? r.score === 0
-                 : r.score < 0;
-    return matchQ && matchS;
-  });
-
-  filtered.sort((a, b) =>
-    so === 'sd'  ? b.score - a.score
-    : so === 'sa'  ? a.score - b.score
-    : so === 'new' ? new Date(b.created_at) - new Date(a.created_at)
+    const mq = !q || r.question.toLowerCase().includes(q) || r.answer.toLowerCase().includes(q);
+    const ms = sc==='all' ? true
+             : sc==='pos' ? r.score > 0
+             : sc==='zero'? r.score === 0
+             : r.score < 0;
+    return mq && ms;
+  }).sort((a, b) =>
+    so==='sd' ? b.score - a.score
+    : so==='sa' ? a.score - b.score
+    : so==='new' ? new Date(b.created_at) - new Date(a.created_at)
     : new Date(a.created_at) - new Date(b.created_at)
   );
 
@@ -529,118 +394,99 @@ function doFilter() {
   renderTable();
 }
 
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // RENDER TABEL
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderTable() {
   const total = filtered.length;
   const q     = document.getElementById('qSearch').value;
 
-  // Update info
-  document.getElementById('rinfo').innerHTML =
-    `Menampilkan <b>${Math.min((curPage - 1) * PER_PAGE + PER_PAGE, total)}</b> dari <b>${total}</b> data` +
-    (q ? ` — pencarian "<b>${x(q)}</b>"` : '');
+  document.getElementById('ri').innerHTML =
+    `Menampilkan <b>${Math.min((curPage-1)*PER+PER, total)}</b> dari <b>${total}</b> data` +
+    (q ? ` — pencarian "<b>${esc(q)}</b>"` : '');
 
-  // Kosong
-  if (total === 0) {
-    setTbody('<tr><td colspan="6"><div class="empty-cell"><span class="ico">🔍</span><p>TIDAK ADA DATA YANG COCOK</p></div></td></tr>');
+  if (!total) {
+    setBody('<tr><td colspan="6"><div class="ec"><span class="ei">🔍</span><p>TIDAK ADA DATA YANG COCOK</p></div></td></tr>');
     document.getElementById('pagBox').style.display = 'none';
     return;
   }
 
-  const start  = (curPage - 1) * PER_PAGE;
-  const sliced = filtered.slice(start, start + PER_PAGE);
+  const start  = (curPage - 1) * PER;
+  const sliced = filtered.slice(start, start + PER);
 
-  const rows = sliced.map((r, i) => {
-    const cls  = r.score > 3 ? 'b-hi' : r.score >= 0 ? 'b-mi' : 'b-lo';
-    const sign = r.score > 0 ? '+' : '';
-    const shortA = r.answer.length > 88 ? r.answer.slice(0, 88) + '…' : r.answer;
-    const date   = r.created_at
-      ? new Date(r.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'2-digit' })
+  setBody(sliced.map((r, i) => {
+    const cls   = r.score > 3 ? 'bhi' : r.score >= 0 ? 'bmi' : 'blo';
+    const sign  = r.score > 0 ? '+' : '';
+    const short = r.answer.length > 85 ? r.answer.slice(0, 85) + '…' : r.answer;
+    const date  = r.created_at
+      ? new Date(r.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'2-digit'})
       : '—';
-
     return `<tr>
-      <td class="td-num">${start + i + 1}</td>
-      <td class="td-q">${x(r.question)}</td>
-      <td class="td-a">${x(shortA)}</td>
-      <td><span class="badge ${cls}">${sign}${r.score}</span></td>
+      <td class="tno">${start+i+1}</td>
+      <td class="tq">${esc(r.question)}</td>
+      <td class="ta">${esc(short)}</td>
+      <td><span class="bdg ${cls}">${sign}${r.score}</span></td>
       <td style="font-family:var(--fm);font-size:0.62rem;color:var(--t3);white-space:nowrap">${date}</td>
-      <td>
-        <button class="btn-see" onclick="showDetail('${r.id}')" title="Lihat jawaban lengkap">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </td>
+      <td><button class="btn-eye" onclick="showDetail('${r.id}')" title="Lihat lengkap">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button></td>
     </tr>`;
-  });
+  }).join(''));
 
-  setTbody(rows.join(''));
-  renderPagination(total);
+  renderPag(total);
 }
 
-function renderPagination(total) {
-  const tp  = Math.ceil(total / PER_PAGE);
+function renderPag(total) {
+  const tp  = Math.ceil(total / PER);
   const box = document.getElementById('pagBox');
-
   if (tp <= 1) { box.style.display = 'none'; return; }
   box.style.display = 'flex';
 
-  const s = (curPage - 1) * PER_PAGE + 1;
-  const e = Math.min(curPage * PER_PAGE, total);
-  document.getElementById('pagInfo').textContent = `${s}–${e} dari ${total}`;
+  const s = (curPage-1)*PER+1, e = Math.min(curPage*PER, total);
+  document.getElementById('pagI').textContent = `${s}–${e} dari ${total}`;
 
-  let h = `<button class="pb" onclick="goPage(${curPage - 1})" ${curPage === 1 ? 'disabled' : ''}>‹ Prev</button>`;
+  let h = `<button class="pb" onclick="gp(${curPage-1})" ${curPage===1?'disabled':''}>‹</button>`;
   for (let i = 1; i <= tp; i++) {
-    if (tp > 7 && Math.abs(i - curPage) > 2 && i !== 1 && i !== tp) {
-      if (i === curPage - 3 || i === curPage + 3) h += `<span style="color:var(--t3);padding:0 3px">…</span>`;
+    if (tp > 7 && Math.abs(i-curPage) > 2 && i !== 1 && i !== tp) {
+      if (i === curPage-3 || i === curPage+3) h += `<span style="color:var(--t3);padding:0 3px">…</span>`;
       continue;
     }
-    h += `<button class="pb ${i === curPage ? 'on' : ''}" onclick="goPage(${i})">${i}</button>`;
+    h += `<button class="pb ${i===curPage?'on':''}" onclick="gp(${i})">${i}</button>`;
   }
-  h += `<button class="pb" onclick="goPage(${curPage + 1})" ${curPage === tp ? 'disabled' : ''}>Next ›</button>`;
-  document.getElementById('pagBtns').innerHTML = h;
+  h += `<button class="pb" onclick="gp(${curPage+1})" ${curPage===tp?'disabled':''}>›</button>`;
+  document.getElementById('pagB').innerHTML = h;
 }
 
-function goPage(p) {
-  const max = Math.ceil(filtered.length / PER_PAGE);
+function gp(p) {
+  const max = Math.ceil(filtered.length / PER);
   if (p < 1 || p > max) return;
-  curPage = p;
-  renderTable();
+  curPage = p; renderTable();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ══════════════════════════════════════════════
-// LIHAT DETAIL
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// DETAIL MODAL
+// ══════════════════════════════════════════════════════
 function showDetail(id) {
-  const r = allRows.find(d => d.id === id);
-  if (!r) return;
-
-  document.getElementById('mDetQ').textContent = r.question;
-  document.getElementById('mDetA').textContent = r.answer;
-
-  const sc = document.getElementById('mDetS');
-  sc.textContent = `SKOR: ${r.score > 0 ? '+' : ''}${r.score}`;
-  sc.className   = `badge ${r.score > 3 ? 'b-hi' : r.score >= 0 ? 'b-mi' : 'b-lo'}`;
-
-  document.getElementById('mDetD').textContent = r.created_at
+  const r = allRows.find(d => d.id === id); if (!r) return;
+  document.getElementById('mDQ').textContent = r.question;
+  document.getElementById('mDA').textContent = r.answer;
+  const sc = document.getElementById('mDS');
+  sc.textContent = `SKOR: ${r.score>0?'+':''}${r.score}`;
+  sc.className   = `bdg ${r.score>3?'bhi':r.score>=0?'bmi':'blo'}`;
+  document.getElementById('mDD').textContent = r.created_at
     ? new Date(r.created_at).toLocaleString('id-ID') : '';
-
   openM('mDetail');
 }
 
-// ══════════════════════════════════════════════
-// FORM TAMBAH PERTANYAAN
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// FORM TAMBAH PERTANYAAN — via backend /api/memory (POST)
+// Backend pakai service_role key → bisa bypass RLS
+// ══════════════════════════════════════════════════════
 function toggleForm() {
   const f = document.getElementById('addForm');
-  const isOpen = f.classList.contains('show');
-  if (isOpen) {
-    f.classList.remove('show');
-  } else {
-    f.classList.add('show');
+  f.classList.toggle('show');
+  if (f.classList.contains('show')) {
     setTimeout(() => document.getElementById('fQ').focus(), 50);
     f.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -655,143 +501,105 @@ async function doSave() {
   if (!a) { toast('Jawaban tidak boleh kosong!', 'err'); document.getElementById('fA').focus(); return; }
 
   const btn = document.getElementById('btnSv');
+  const orig = btn.innerHTML;
   btn.textContent = '⟳ Menyimpan...';
   btn.disabled = true;
 
-  const { data, error } = await sb
-    .from('ai_memory')
-    .insert([{ question: q, answer: a, score: s }])
-    .select()
-    .single();
+  try {
+    const res  = await fetch(API + '/memory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, answer: a, score: s }),
+    });
+    const json = await res.json();
 
-  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>SIMPAN KE DATABASE`;
-  btn.disabled = false;
+    if (!res.ok) throw new Error(json.error || 'Gagal menyimpan');
 
-  if (error) {
-    toast('Gagal menyimpan: ' + error.message, 'err');
-    return;
+    // Tambah ke data lokal tanpa reload
+    allRows.unshift({ id: json.id, question: q, answer: a, score: s, created_at: new Date().toISOString() });
+    updateStats();
+    doFilter();
+
+    // Reset form
+    document.getElementById('fQ').value = '';
+    document.getElementById('fA').value = '';
+    document.getElementById('fS').value = '5';
+    document.getElementById('fN').value = '';
+    document.getElementById('addForm').classList.remove('show');
+
+    toast('✓ Pertanyaan & jawaban berhasil disimpan!', 'ok');
+
+  } catch (e) {
+    toast('Gagal menyimpan: ' + e.message, 'err');
   }
 
-  // Tambah ke state lokal
-  allRows.unshift(data);
-  updateStats();
-  doFilter();
-
-  // Reset form
-  document.getElementById('fQ').value = '';
-  document.getElementById('fA').value = '';
-  document.getElementById('fS').value = '5';
-  document.getElementById('fN').value = '';
-  document.getElementById('addForm').classList.remove('show');
-
-  toast('✓ Pertanyaan & jawaban berhasil disimpan!', 'ok');
+  btn.innerHTML = orig;
+  btn.disabled  = false;
 }
 
-// ══════════════════════════════════════════════
-// HAPUS RIWAYAT CHAT
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// HAPUS RIWAYAT CHAT — via backend /api/chat/clear
+// Backend pakai service_role key → bisa bypass RLS
+// ══════════════════════════════════════════════════════
 function askClear(type) {
-  pendingAction = type;
-
-  const titles = {
-    '30d': 'HAPUS CHAT LEBIH DARI 30 HARI',
-    '7d':  'HAPUS CHAT LEBIH DARI 7 HARI',
-    'all': 'HAPUS SEMUA RIWAYAT CHAT',
+  pending = type;
+  const titles = { '30d':'HAPUS CHAT LEBIH DARI 30 HARI', '7d':'HAPUS CHAT LEBIH DARI 7 HARI', 'all':'HAPUS SEMUA RIWAYAT CHAT' };
+  const bodies  = {
+    '30d': 'Ini akan menghapus semua riwayat percakapan <strong>lebih dari 30 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh. Lanjutkan?',
+    '7d':  'Ini akan menghapus semua riwayat percakapan <strong>lebih dari 7 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh. Lanjutkan?',
+    'all': 'Ini akan menghapus <strong>seluruh riwayat percakapan</strong> semua pengguna.<br><br>Pengetahuan AI tidak terpengaruh. Lanjutkan?',
   };
-  const bodies = {
-    '30d': 'Ini akan menghapus semua riwayat percakapan yang sudah lebih dari <strong>30 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
-    '7d':  'Ini akan menghapus semua riwayat percakapan yang sudah lebih dari <strong>7 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
-    'all': 'Ini akan menghapus <strong>seluruh riwayat percakapan</strong> semua pengguna.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
-  };
-
-  document.getElementById('mClearH').textContent = titles[type];
-  document.getElementById('mClearP').innerHTML   = bodies[type];
+  document.getElementById('mCH').textContent = titles[type];
+  document.getElementById('mCP').innerHTML   = bodies[type];
   openM('mClear');
 }
 
-document.getElementById('mClearOk').addEventListener('click', async () => {
+document.getElementById('mCOk').addEventListener('click', async () => {
   closeM('mClear');
   toast('⟳ Menghapus riwayat chat...', '');
 
   try {
-    let res, msg;
+    let url = API + '/chat/clear';
+    if (pending === '30d') url += '?days=30';
+    else if (pending === '7d') url += '?days=7';
 
-    if (pendingAction === '30d') {
-      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      res = await sb.from('chat_history').delete().lt('timestamp', cutoff);
-      msg = 'Riwayat chat lebih dari 30 hari berhasil dihapus!';
+    const res  = await fetch(url, { method: 'DELETE' });
+    const json = await res.json();
 
-    } else if (pendingAction === '7d') {
-      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      res = await sb.from('chat_history').delete().lt('timestamp', cutoff);
-      msg = 'Riwayat chat lebih dari 7 hari berhasil dihapus!';
+    if (!res.ok) throw new Error(json.error || 'Gagal menghapus');
+    toast('✓ ' + (json.message || 'Berhasil dihapus'), 'ok');
 
-    } else if (pendingAction === 'all') {
-      // Hapus semua — pakai gt id kosong sebagai workaround RLS
-      res = await sb.from('chat_history').delete().gte('id', '00000000-0000-0000-0000-000000000000');
-      msg = 'Semua riwayat chat berhasil dihapus!';
-    }
-
-    if (res && res.error) {
-      toast('Gagal: ' + res.error.message, 'err');
-    } else {
-      toast('✓ ' + msg, 'ok');
-    }
   } catch (e) {
-    toast('Error: ' + e.message, 'err');
+    toast('Gagal: ' + e.message, 'err');
   }
 
-  pendingAction = null;
+  pending = null;
 });
 
-// ══════════════════════════════════════════════
-// MODAL HELPERS
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
 function openM(id)  { document.getElementById(id).classList.remove('off'); }
 function closeM(id) { document.getElementById(id).classList.add('off'); }
+document.querySelectorAll('.ov').forEach(el => el.addEventListener('click', e => { if (e.target === el) el.classList.add('off'); }));
 
-// Klik di luar modal = tutup
-document.querySelectorAll('.overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.add('off'); });
-});
+function setBody(html) { document.getElementById('tbody').innerHTML = html; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ══════════════════════════════════════════════
-// TOAST
-// ══════════════════════════════════════════════
-let toastTimer;
-function toast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className   = 'show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = ''; }, 3500);
-}
-
-// ══════════════════════════════════════════════
-// HELPER: escape HTML
-// ══════════════════════════════════════════════
-function x(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function setTbody(html) {
-  document.getElementById('tbody').innerHTML = html;
-}
-
-// ══════════════════════════════════════════════
-// ESC key untuk tutup search
-// ══════════════════════════════════════════════
 document.getElementById('qSearch').addEventListener('keydown', e => {
   if (e.key === 'Escape') { e.target.value = ''; doFilter(); }
 });
 
-// ══════════════════════════════════════════════
+let _tt;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  clearTimeout(_tt); _tt = setTimeout(() => t.className = '', 3500);
+}
+
+// ══════════════════════════════════════════════════════
 // MULAI
-// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 loadData();
 </script>
 </body>

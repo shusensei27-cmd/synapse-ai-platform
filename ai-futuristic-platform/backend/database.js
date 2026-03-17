@@ -243,4 +243,36 @@ module.exports = {
   getUserSessions,
   getStats,
   healthCheck,
+  deleteChatBefore,
+  deleteAllChat,
 };
+
+// ─── DELETE CHAT HISTORY (pakai service role, bisa bypass RLS) ───
+
+/**
+ * Hapus chat sebelum tanggal tertentu
+ */
+async function deleteChatBefore(cutoffIso) {
+  const sb = getClient();
+  const { data, error, count } = await sb
+    .from('chat_history')
+    .delete({ count: 'exact' })
+    .lt('timestamp', cutoffIso);
+
+  if (error) throw new Error(error.message);
+  return count || 0;
+}
+
+/**
+ * Hapus semua chat
+ */
+async function deleteAllChat() {
+  const sb = getClient();
+  const { data, error, count } = await sb
+    .from('chat_history')
+    .delete({ count: 'exact' })
+    .gte('id', '00000000-0000-0000-0000-000000000000');
+
+  if (error) throw new Error(error.message);
+  return count || 0;
+}
