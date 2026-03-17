@@ -1206,3 +1206,113 @@
   </script>
 </body>
 </html>
+<script>
+// ══════════════════════════════════════
+// ADMIN PASSWORD PROTECTION
+// ══════════════════════════════════════
+const ADMIN_PASSWORD = 'synapse2024'; // ← UBAH INI
+let isAdminUnlocked = false;
+
+// Override fungsi berbahaya agar cek admin dulu
+const _loadData = loadData;
+const _executeAction = executeAction;
+const _deleteRow = deleteRow;
+const _saveNewMemory = saveNewMemory;
+
+function checkAdminAccess() {
+  const saved = sessionStorage.getItem('synapse_admin');
+  if (saved === ADMIN_PASSWORD) {
+    isAdminUnlocked = true;
+    document.getElementById('admin-lock-overlay').style.display = 'none';
+    return true;
+  }
+  document.getElementById('admin-lock-overlay').style.display = 'flex';
+  return false;
+}
+
+function tryAdminLogin() {
+  const input = document.getElementById('admin-password-input').value;
+  if (input === ADMIN_PASSWORD) {
+    sessionStorage.setItem('synapse_admin', ADMIN_PASSWORD);
+    isAdminUnlocked = true;
+    document.getElementById('admin-lock-overlay').style.display = 'none';
+    document.getElementById('admin-error').style.display = 'none';
+  } else {
+    document.getElementById('admin-error').style.display = 'block';
+    document.getElementById('admin-password-input').value = '';
+    document.getElementById('admin-password-input').focus();
+    const box = document.getElementById('admin-login-box');
+    box.style.animation = 'none';
+    setTimeout(() => { box.style.animation = 'shake 0.4s ease'; }, 10);
+  }
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('synapse_admin');
+  isAdminUnlocked = false;
+  location.reload();
+}
+
+// Proteksi tombol-tombol berbahaya
+document.querySelectorAll('.btn-danger, .btn-add, .btn-delete-row, .btn-save').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    if (!isAdminUnlocked) {
+      e.stopImmediatePropagation();
+      showToast('Akses ditolak! Login sebagai admin dulu.', 'error');
+    }
+  }, true);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const overlay = document.getElementById('admin-lock-overlay');
+    if (overlay && overlay.style.display !== 'none') tryAdminLogin();
+  }
+});
+
+// Jalankan cek saat halaman load
+checkAdminAccess();
+</script>
+
+<!-- ADMIN LOCK OVERLAY -->
+<div id="admin-lock-overlay" style="position:fixed;inset:0;z-index:9999;background:rgba(2,6,16,0.97);backdrop-filter:blur(20px);display:none;align-items:center;justify-content:center;padding:20px;">
+  <div id="admin-login-box" style="background:rgba(8,18,38,0.95);border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;text-align:center;">
+
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin:0 auto 20px;display:block;filter:drop-shadow(0 0 12px rgba(0,245,255,0.5))">
+      <polygon points="24,4 44,36 4,36" fill="none" stroke="#00f5ff" stroke-width="1.5"/>
+      <circle cx="24" cy="24" r="8" fill="none" stroke="#7b2fff" stroke-width="1.5"/>
+      <circle cx="24" cy="24" r="3" fill="#00f5ff"/>
+    </svg>
+
+    <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:0.25em;margin-bottom:6px;background:linear-gradient(135deg,#00f5ff,#7b2fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">ADMIN ACCESS</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;color:rgba(100,140,190,0.5);margin-bottom:24px;">KNOWLEDGE BASE — RESTRICTED AREA</div>
+    <div style="font-size:0.82rem;color:rgba(170,200,240,0.6);margin-bottom:20px;line-height:1.6;">Halaman ini hanya untuk admin.<br/>Masukkan password untuk melanjutkan.</div>
+
+    <input type="password" id="admin-password-input" placeholder="Password admin..." autofocus
+      style="width:100%;padding:12px 16px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,245,255,0.2);border-radius:8px;color:#e2eeff;font-size:0.9rem;outline:none;margin-bottom:8px;text-align:center;letter-spacing:0.15em;font-family:'Inter',sans-serif;"
+      onfocus="this.style.borderColor='rgba(0,245,255,0.5)'"
+      onblur="this.style.borderColor='rgba(0,245,255,0.2)'"
+    />
+
+    <div id="admin-error" style="display:none;color:#ff2d78;font-family:'Share Tech Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;margin-bottom:10px;">⚠ PASSWORD SALAH — COBA LAGI</div>
+
+    <button onclick="tryAdminLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(123,47,255,0.15));border:1px solid rgba(0,245,255,0.4);border-radius:8px;color:#00f5ff;font-family:'Share Tech Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;cursor:pointer;margin-bottom:16px;"
+      onmouseover="this.style.background='linear-gradient(135deg,rgba(0,245,255,0.25),rgba(123,47,255,0.25))'"
+      onmouseout="this.style.background='linear-gradient(135deg,rgba(0,245,255,0.15),rgba(123,47,255,0.15))'">
+      MASUK →
+    </button>
+
+    <a href="index.html" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:rgba(100,140,190,0.5);text-decoration:none;">← Kembali ke Chat</a>
+  </div>
+</div>
+
+<style>
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)}
+  80%{transform:translateX(6px)}
+}
+#admin-login-box { animation: none; }
+</style>
