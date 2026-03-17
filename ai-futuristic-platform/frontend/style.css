@@ -300,19 +300,36 @@ input, textarea { outline: none; }
 
 .btn-new-chat {
   display: flex; align-items: center; gap: 8px;
-  margin: 12px; padding: 10px 14px;
+  margin: 12px 12px 4px; padding: 10px 14px;
   background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(123,47,255,0.1));
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--cyan); font-size: 0.8rem; font-weight: 500;
   letter-spacing: 0.05em;
   transition: var(--transition);
-  white-space: nowrap; overflow: hidden;
+  white-space: nowrap; overflow: hidden; cursor: pointer;
 }
 .btn-new-chat:hover {
   background: linear-gradient(135deg, rgba(0,245,255,0.18), rgba(123,47,255,0.18));
   border-color: var(--border-active);
   box-shadow: var(--glow-cyan);
+}
+
+.btn-knowledge {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 12px 12px; padding: 10px 14px;
+  background: rgba(123,47,255,0.08);
+  border: 1px solid rgba(123,47,255,0.2);
+  border-radius: var(--radius-sm);
+  color: rgba(170,130,255,0.9); font-size: 0.8rem;
+  letter-spacing: 0.05em; text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap; overflow: hidden;
+}
+.btn-knowledge:hover {
+  background: rgba(123,47,255,0.18);
+  border-color: rgba(123,47,255,0.45);
+  color: #c4a0ff;
 }
 
 .sidebar-section-label {
