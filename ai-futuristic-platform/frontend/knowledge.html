@@ -4,155 +4,287 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SYNAPSE — Knowledge Base</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
     :root {
-      --cyan:#00f5ff; --cyan-dim:#00b8c4; --violet:#7b2fff; --magenta:#ff2d78;
-      --bg-deep:#040810; --bg-panel:rgba(8,18,38,0.72); --bg-glass:rgba(10,22,48,0.55);
-      --border-subtle:rgba(0,245,255,0.12); --border-active:rgba(0,245,255,0.45);
-      --text-primary:#e2eeff; --text-secondary:rgba(170,200,240,0.7); --text-muted:rgba(100,140,190,0.5);
-      --font-display:'Orbitron',sans-serif; --font-mono:'Share Tech Mono',monospace; --font-body:'Inter',sans-serif;
-      --radius:12px; --radius-sm:8px;
+      --cyan: #00f5ff;
+      --violet: #7b2fff;
+      --magenta: #ff2d78;
+      --green: #00e676;
+      --bg: #040810;
+      --panel: rgba(8,18,38,0.8);
+      --glass: rgba(10,22,48,0.6);
+      --b1: rgba(0,245,255,0.12);
+      --b2: rgba(0,245,255,0.4);
+      --t1: #e2eeff;
+      --t2: rgba(170,200,240,0.7);
+      --t3: rgba(100,140,190,0.5);
+      --fd: 'Orbitron', sans-serif;
+      --fm: 'Share Tech Mono', monospace;
+      --fb: 'Inter', sans-serif;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{font-size:16px;-webkit-font-smoothing:antialiased}
-    body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font-body);min-height:100vh}
-    .bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
-    .page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:32px 24px 80px}
 
-    /* HEADER */
-    .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
-    .hdr h1{font-family:var(--font-display);font-size:1.3rem;font-weight:900;letter-spacing:0.2em;background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .hdr p{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.15em;color:var(--text-muted);margin-top:4px}
-    .back-btn{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(0,245,255,0.06);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--cyan-dim);font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.1em;cursor:pointer;text-decoration:none;transition:all .2s}
-    .back-btn:hover{background:rgba(0,245,255,0.12);border-color:var(--border-active);color:var(--cyan)}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--t1); font-family: var(--fb); min-height: 100vh; }
 
-    /* STATS */
-    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
-    .stat{background:var(--bg-glass);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:16px;backdrop-filter:blur(20px);text-align:center}
-    .stat-n{font-family:var(--font-display);font-size:1.5rem;font-weight:900;color:var(--cyan);display:block}
-    .stat-l{font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.15em;color:var(--text-muted);margin-top:4px;display:block}
+    .grid-bg {
+      position: fixed; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
 
-    /* ADD FORM */
-    .add-form{background:var(--bg-glass);border:1px solid var(--border-active);border-radius:var(--radius);padding:24px;margin-bottom:20px;backdrop-filter:blur(20px);display:none}
-    .add-form.open{display:block;animation:fadein .25s ease}
-    @keyframes fadein{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-    .form-title{font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.2em;color:var(--cyan);margin-bottom:16px}
-    .fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-    .fl{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.12em;color:var(--text-muted)}
-    .fi,.ft{background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font-body);font-size:0.85rem;padding:10px 14px;outline:none;transition:all .2s;width:100%}
-    .fi:focus,.ft:focus{border-color:var(--border-active);box-shadow:0 0 0 1px rgba(0,245,255,0.08)}
-    .ft{resize:vertical;min-height:100px;line-height:1.5}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    @media(max-width:600px){.form-row{grid-template-columns:1fr}}
-    .fa{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
-    .btn-cancel{padding:9px 18px;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);font-family:var(--font-mono);font-size:0.7rem;cursor:pointer;transition:all .15s}
-    .btn-cancel:hover{border-color:var(--border-active)}
-    .btn-save{padding:9px 22px;background:linear-gradient(135deg,var(--cyan),var(--violet));border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.08em;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
-    .btn-save:hover{box-shadow:0 0 20px rgba(0,245,255,0.25);transform:translateY(-1px)}
-    .btn-save:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .wrap { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
 
-    /* TOOLBAR */
-    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-    .sw{flex:1;min-width:180px;position:relative}
-    .si{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
-    .search{width:100%;padding:10px 16px 10px 40px;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font-body);font-size:0.85rem;outline:none;transition:all .2s}
-    .search::placeholder{color:var(--text-muted)}
-    .search:focus{border-color:var(--border-active);box-shadow:0 0 0 1px rgba(0,245,255,0.1)}
-    select.fsel{padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);font-family:var(--font-mono);font-size:0.68rem;outline:none;cursor:pointer;transition:all .2s}
-    select.fsel:focus{border-color:var(--border-active)}
-    select.fsel option{background:#0d1a2e}
-    .btn-add{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(123,47,255,0.1));border:1px solid var(--border-active);border-radius:var(--radius-sm);color:var(--cyan);font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;transition:all .2s}
-    .btn-add:hover{background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(123,47,255,0.2));box-shadow:0 0 14px rgba(0,245,255,0.12)}
+    /* ── HEADER ── */
+    .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .top h1 {
+      font-family: var(--fd); font-size: 1.3rem; font-weight: 900; letter-spacing: 0.2em;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .top p { font-family: var(--fm); font-size: 0.6rem; letter-spacing: 0.15em; color: var(--t3); margin-top: 5px; }
+    .btn-back {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 16px; text-decoration: none;
+      background: rgba(0,245,255,0.06); border: 1px solid var(--b1);
+      border-radius: 8px; color: #00b8c4;
+      font-family: var(--fm); font-size: 0.7rem; letter-spacing: 0.1em;
+      transition: all .2s; white-space: nowrap;
+    }
+    .btn-back:hover { background: rgba(0,245,255,0.12); border-color: var(--b2); color: var(--cyan); }
 
-    /* RESULTS */
-    .ri{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:10px}
-    .ri span{color:var(--cyan)}
+    /* ── STATS ── */
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+    @media(max-width:600px) { .stats { grid-template-columns: repeat(2,1fr); } }
+    .stat-box {
+      background: var(--glass); border: 1px solid var(--b1);
+      border-radius: 10px; padding: 16px 12px; text-align: center;
+      backdrop-filter: blur(16px);
+    }
+    .stat-box .n { font-family: var(--fd); font-size: 1.6rem; font-weight: 900; color: var(--cyan); display: block; }
+    .stat-box .l { font-family: var(--fm); font-size: 0.56rem; letter-spacing: 0.15em; color: var(--t3); margin-top: 4px; display: block; }
 
-    /* TABLE */
-    .tw{background:var(--bg-glass);border:1px solid var(--border-subtle);border-radius:var(--radius);backdrop-filter:blur(20px);overflow:hidden}
-    table{width:100%;border-collapse:collapse}
-    thead{background:rgba(0,245,255,0.05);border-bottom:1px solid var(--border-subtle)}
-    th{padding:12px 16px;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.15em;color:var(--cyan-dim);font-weight:400;text-align:left;white-space:nowrap}
-    tbody tr{border-bottom:1px solid rgba(0,245,255,0.05);transition:background .15s}
-    tbody tr:last-child{border-bottom:none}
-    tbody tr:hover{background:rgba(0,245,255,0.03)}
-    td{padding:12px 16px;font-size:0.83rem;color:var(--text-secondary);vertical-align:top}
-    .tno{font-family:var(--font-mono);font-size:0.63rem;color:var(--text-muted);width:40px}
-    .tq{color:var(--text-primary);font-weight:500;max-width:250px}
-    .ta{max-width:350px;line-height:1.5}
-    .sb{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-family:var(--font-mono);font-size:0.64rem;font-weight:600;white-space:nowrap}
-    .sh{background:rgba(0,230,118,0.1);color:#00e676;border:1px solid rgba(0,230,118,0.2)}
-    .sm{background:rgba(0,245,255,0.07);color:var(--cyan-dim);border:1px solid rgba(0,245,255,0.18)}
-    .sl{background:rgba(255,45,120,0.07);color:var(--magenta);border:1px solid rgba(255,45,120,0.18)}
-    .btn-eye{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(0,245,255,0.15);background:rgba(0,245,255,0.05);color:var(--cyan-dim);transition:all .15s}
-    .btn-eye:hover{background:rgba(0,245,255,0.13);border-color:var(--border-active)}
-    .lc{text-align:center;padding:48px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);letter-spacing:0.12em}
-    .es{text-align:center;padding:52px 20px;color:var(--text-muted)}
-    .es .ei{font-size:2.5rem;margin-bottom:12px;opacity:.35}
-    .es p{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.1em}
+    /* ── TOOLBAR ── */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 180px; position: relative; }
+    .search-box svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--t3); pointer-events: none; }
+    .search-box input {
+      width: 100%; padding: 10px 14px 10px 40px;
+      background: var(--panel); border: 1px solid var(--b1);
+      border-radius: 8px; color: var(--t1); font-family: var(--fb);
+      font-size: 0.85rem; outline: none; transition: all .2s;
+    }
+    .search-box input::placeholder { color: var(--t3); }
+    .search-box input:focus { border-color: var(--b2); box-shadow: 0 0 0 1px rgba(0,245,255,0.1); }
+    select.sel {
+      padding: 10px 12px; background: var(--panel);
+      border: 1px solid var(--b1); border-radius: 8px;
+      color: var(--t2); font-family: var(--fm); font-size: 0.68rem;
+      outline: none; cursor: pointer; transition: all .2s;
+    }
+    select.sel:focus { border-color: var(--b2); }
+    select.sel option { background: #0a1628; }
+    .btn-add {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 16px; cursor: pointer;
+      background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(123,47,255,0.1));
+      border: 1px solid var(--b2); border-radius: 8px;
+      color: var(--cyan); font-family: var(--fm);
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      transition: all .2s; white-space: nowrap;
+    }
+    .btn-add:hover { background: linear-gradient(135deg, rgba(0,245,255,0.2), rgba(123,47,255,0.2)); }
 
-    /* PAGINATION */
-    .pag{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid var(--border-subtle);flex-wrap:wrap;gap:10px}
-    .pi{font-family:var(--font-mono);font-size:0.63rem;color:var(--text-muted);letter-spacing:0.08em}
-    .pb{display:flex;gap:5px}
-    .pbtn{padding:5px 10px;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);font-family:var(--font-mono);font-size:0.65rem;cursor:pointer;transition:all .15s}
-    .pbtn:hover:not(:disabled){border-color:var(--border-active);color:var(--cyan)}
-    .pbtn.act{background:rgba(0,245,255,0.1);border-color:var(--border-active);color:var(--cyan)}
-    .pbtn:disabled{opacity:.3;cursor:not-allowed}
+    /* ── ADD FORM ── */
+    #addForm {
+      display: none; background: var(--glass);
+      border: 1px solid var(--b2); border-radius: 12px;
+      padding: 24px; margin-bottom: 18px;
+      backdrop-filter: blur(20px);
+      animation: slideIn .25s ease;
+    }
+    #addForm.show { display: block; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    #addForm h3 { font-family: var(--fd); font-size: 0.68rem; letter-spacing: 0.2em; color: var(--cyan); margin-bottom: 16px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .fl { font-family: var(--fm); font-size: 0.58rem; letter-spacing: 0.12em; color: var(--t3); }
+    .fi, .ft {
+      background: rgba(0,0,0,0.35); border: 1px solid var(--b1);
+      border-radius: 8px; color: var(--t1);
+      font-family: var(--fb); font-size: 0.85rem;
+      padding: 10px 14px; outline: none; width: 100%; transition: all .2s;
+    }
+    .fi:focus, .ft:focus { border-color: var(--b2); }
+    .ft { resize: vertical; min-height: 110px; line-height: 1.55; }
+    .form2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:500px) { .form2col { grid-template-columns: 1fr; } }
+    .form-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+    .btn-cx {
+      padding: 9px 18px; background: transparent;
+      border: 1px solid var(--b1); border-radius: 8px;
+      color: var(--t2); font-family: var(--fm); font-size: 0.68rem;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-cx:hover { border-color: var(--b2); }
+    .btn-sv {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 20px; cursor: pointer;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      border: none; border-radius: 8px;
+      color: #fff; font-family: var(--fm);
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      transition: all .2s;
+    }
+    .btn-sv:hover { box-shadow: 0 0 18px rgba(0,245,255,0.25); transform: translateY(-1px); }
+    .btn-sv:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-    /* CLEAR CHAT SECTION */
-    .cc-section{margin-top:36px;background:rgba(255,45,120,0.04);border:1px solid rgba(255,45,120,0.18);border-radius:var(--radius);padding:24px}
-    .cc-title{font-family:var(--font-display);font-size:0.7rem;font-weight:700;letter-spacing:0.2em;color:var(--magenta);margin-bottom:6px}
-    .cc-desc{font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:20px}
-    .cc-desc strong{color:var(--text-primary)}
-    .cc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-    .cc-card{background:rgba(0,0,0,0.22);border:1px solid rgba(255,45,120,0.1);border-radius:var(--radius-sm);padding:18px}
-    .cc-card h4{font-size:0.83rem;font-weight:500;color:var(--text-primary);margin-bottom:5px}
-    .cc-card p{font-size:0.75rem;color:var(--text-muted);line-height:1.5;margin-bottom:14px}
-    .btn-clear{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;background:rgba(255,45,120,0.08);border:1px solid rgba(255,45,120,0.22);border-radius:var(--radius-sm);color:var(--magenta);font-family:var(--font-mono);font-size:0.67rem;letter-spacing:0.08em;cursor:pointer;transition:all .2s}
-    .btn-clear:hover{background:rgba(255,45,120,0.16);border-color:rgba(255,45,120,0.42)}
+    /* ── RESULT INFO ── */
+    .rinfo { font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.08em; color: var(--t3); margin-bottom: 10px; }
+    .rinfo b { color: var(--cyan); font-weight: 400; }
 
-    /* MODAL */
-    .mo{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px}
-    .mo.h{display:none}
-    .mb{background:#060e1e;border:1px solid var(--border-subtle);border-radius:var(--radius);padding:30px;max-width:460px;width:100%;animation:fadein .2s ease}
-    .mt{font-family:var(--font-display);font-size:0.86rem;font-weight:700;letter-spacing:0.15em;margin-bottom:12px}
-    .mt.d{color:var(--magenta)} .mt.i{color:var(--cyan)}
-    .mbody{font-size:0.83rem;color:var(--text-secondary);line-height:1.65;margin-bottom:22px}
-    .mfa{display:flex;gap:10px;justify-content:flex-end}
-    .mfcancel{padding:9px 18px;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);color:var(--text-secondary);font-family:var(--font-mono);font-size:0.68rem;cursor:pointer;transition:all .15s}
-    .mfcancel:hover{border-color:var(--border-active)}
-    .mfconfirm{padding:9px 18px;background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.32);border-radius:var(--radius-sm);color:var(--magenta);font-family:var(--font-mono);font-size:0.68rem;cursor:pointer;transition:all .15s}
-    .mfconfirm:hover{background:rgba(255,45,120,0.2)}
-    .mabs{background:rgba(0,245,255,0.04);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:14px;font-size:0.81rem;line-height:1.6;color:var(--text-secondary);max-height:280px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
+    /* ── TABLE ── */
+    .tbox {
+      background: var(--glass); border: 1px solid var(--b1);
+      border-radius: 12px; overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: rgba(0,245,255,0.05); border-bottom: 1px solid var(--b1); }
+    th {
+      padding: 12px 14px; text-align: left;
+      font-family: var(--fm); font-size: 0.6rem;
+      letter-spacing: 0.15em; color: #00b8c4; font-weight: 400;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid rgba(0,245,255,0.05); transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(0,245,255,0.03); }
+    td { padding: 12px 14px; font-size: 0.83rem; color: var(--t2); vertical-align: top; }
+    .td-num { font-family: var(--fm); font-size: 0.6rem; color: var(--t3); width: 36px; }
+    .td-q { color: var(--t1); font-weight: 500; max-width: 240px; word-break: break-word; }
+    .td-a { max-width: 340px; line-height: 1.5; word-break: break-word; }
 
-    /* TOAST */
-    #toast{position:fixed;bottom:24px;right:24px;z-index:9998;padding:11px 20px;background:var(--bg-glass);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);backdrop-filter:blur(20px);font-size:0.8rem;color:var(--text-secondary);opacity:0;transform:translateX(14px);transition:all .28s;pointer-events:none}
-    #toast.show{opacity:1;transform:translateX(0)}
-    #toast.success{border-color:rgba(0,230,118,0.4);color:#00e676}
-    #toast.error{border-color:rgba(255,45,120,0.4);color:var(--magenta)}
+    .badge {
+      display: inline-block; padding: 3px 10px;
+      border-radius: 20px; font-family: var(--fm);
+      font-size: 0.62rem; font-weight: 600; white-space: nowrap;
+    }
+    .b-hi { background: rgba(0,230,118,0.1); color: var(--green); border: 1px solid rgba(0,230,118,0.2); }
+    .b-mi { background: rgba(0,245,255,0.07); color: #00b8c4; border: 1px solid rgba(0,245,255,0.18); }
+    .b-lo { background: rgba(255,45,120,0.08); color: var(--magenta); border: 1px solid rgba(255,45,120,0.2); }
 
-    @media(max-width:768px){
-      thead{display:none}
-      tbody tr{display:block;margin-bottom:10px;background:var(--bg-panel);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:12px}
-      td{display:block;padding:3px 0;max-width:100%}
-      .tno{display:none}
+    .btn-see {
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      background: rgba(0,245,255,0.06); border: 1px solid rgba(0,245,255,0.15);
+      border-radius: 6px; color: #00b8c4; cursor: pointer; transition: all .15s;
+    }
+    .btn-see:hover { background: rgba(0,245,255,0.14); border-color: var(--b2); }
+
+    .empty-cell { text-align: center; padding: 56px 20px; }
+    .empty-cell p { font-family: var(--fm); font-size: 0.7rem; letter-spacing: 0.1em; color: var(--t3); }
+    .empty-cell .ico { font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: .35; }
+    .loading-cell { text-align: center; padding: 48px; font-family: var(--fm); font-size: 0.7rem; color: var(--t3); letter-spacing: 0.12em; }
+
+    /* ── PAGINATION ── */
+    .pag {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-top: 1px solid var(--b1);
+      flex-wrap: wrap; gap: 8px;
+    }
+    .pag-info { font-family: var(--fm); font-size: 0.62rem; color: var(--t3); }
+    .pag-btns { display: flex; gap: 4px; }
+    .pb {
+      padding: 5px 10px; background: var(--panel);
+      border: 1px solid var(--b1); border-radius: 6px;
+      color: var(--t2); font-family: var(--fm); font-size: 0.62rem;
+      cursor: pointer; transition: all .15s;
+    }
+    .pb:hover:not(:disabled) { border-color: var(--b2); color: var(--cyan); }
+    .pb.on { background: rgba(0,245,255,0.1); border-color: var(--b2); color: var(--cyan); }
+    .pb:disabled { opacity: .3; cursor: not-allowed; }
+
+    /* ── CLEAR CHAT ── */
+    .cc {
+      margin-top: 36px; padding: 24px;
+      background: rgba(255,45,120,0.04);
+      border: 1px solid rgba(255,45,120,0.18);
+      border-radius: 12px;
+    }
+    .cc-hd { font-family: var(--fd); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em; color: var(--magenta); margin-bottom: 8px; }
+    .cc-sub { font-size: 0.82rem; color: var(--t2); line-height: 1.6; margin-bottom: 20px; }
+    .cc-sub strong { color: var(--t1); }
+    .cc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 12px; }
+    .cc-card { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,45,120,0.1); border-radius: 8px; padding: 16px; }
+    .cc-card h4 { font-size: 0.82rem; font-weight: 500; color: var(--t1); margin-bottom: 5px; }
+    .cc-card p { font-size: 0.74rem; color: var(--t3); line-height: 1.5; margin-bottom: 14px; }
+    .btn-del {
+      width: 100%; padding: 9px 14px;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      background: rgba(255,45,120,0.08); border: 1px solid rgba(255,45,120,0.22);
+      border-radius: 8px; color: var(--magenta);
+      font-family: var(--fm); font-size: 0.65rem; letter-spacing: 0.08em;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-del:hover { background: rgba(255,45,120,0.16); border-color: rgba(255,45,120,0.4); }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .overlay.off { display: none; }
+    .modal {
+      background: #060d1c; border: 1px solid var(--b1);
+      border-radius: 12px; padding: 28px; max-width: 460px; width: 100%;
+      animation: slideIn .2s ease;
+    }
+    .modal h3 { font-family: var(--fd); font-size: 0.84rem; font-weight: 700; letter-spacing: 0.15em; margin-bottom: 12px; }
+    .modal h3.d { color: var(--magenta); }
+    .modal h3.i { color: var(--cyan); }
+    .modal p { font-size: 0.83rem; color: var(--t2); line-height: 1.65; margin-bottom: 22px; }
+    .modal-answer { background: rgba(0,245,255,0.04); border: 1px solid var(--b1); border-radius: 8px; padding: 14px; max-height: 260px; overflow-y: auto; font-size: 0.82rem; line-height: 1.6; color: var(--t2); white-space: pre-wrap; margin-top: 10px; margin-bottom: 20px; }
+    .modal-foot { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-no { padding: 9px 18px; background: transparent; border: 1px solid var(--b1); border-radius: 8px; color: var(--t2); font-family: var(--fm); font-size: 0.68rem; cursor: pointer; transition: all .15s; }
+    .btn-no:hover { border-color: var(--b2); }
+    .btn-yes { padding: 9px 18px; background: rgba(255,45,120,0.1); border: 1px solid rgba(255,45,120,0.3); border-radius: 8px; color: var(--magenta); font-family: var(--fm); font-size: 0.68rem; cursor: pointer; transition: all .15s; }
+    .btn-yes:hover { background: rgba(255,45,120,0.2); }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      padding: 11px 20px; border-radius: 8px;
+      font-size: 0.8rem; pointer-events: none;
+      background: var(--glass); border: 1px solid var(--b1);
+      backdrop-filter: blur(20px); color: var(--t2);
+      opacity: 0; transform: translateX(14px);
+      transition: all .28s;
+    }
+    #toast.show { opacity: 1; transform: translateX(0); }
+    #toast.ok { border-color: rgba(0,230,118,0.45); color: var(--green); }
+    #toast.err { border-color: rgba(255,45,120,0.45); color: var(--magenta); }
+
+    @media(max-width:700px) {
+      thead { display: none; }
+      tbody tr { display: block; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--b1); border-radius: 8px; padding: 12px; }
+      td { display: block; padding: 4px 0; max-width: 100%; }
+      .td-num { display: none; }
     }
   </style>
 </head>
 <body>
-<div class="bg-grid"></div>
-<div class="page">
+<div class="grid-bg"></div>
+<div class="wrap">
 
-  <!-- HEADER -->
-  <div class="hdr">
+  <!-- TOP -->
+  <div class="top">
     <div>
       <h1>KNOWLEDGE BASE</h1>
       <p>SYNAPSE MEMORY BANK — SEMUA PERTANYAAN & JAWABAN AI</p>
     </div>
-    <a href="index.html" class="back-btn">
+    <a href="index.html" class="btn-back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       KEMBALI KE CHAT
     </a>
@@ -160,24 +292,36 @@
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat"><span class="stat-n" id="sTotal">—</span><span class="stat-l">TOTAL MEMORI</span></div>
-    <div class="stat"><span class="stat-n" id="sPos">—</span><span class="stat-l">SKOR POSITIF</span></div>
-    <div class="stat"><span class="stat-n" id="sNeg">—</span><span class="stat-l">SKOR NEGATIF</span></div>
-    <div class="stat"><span class="stat-n" id="sAcc">—</span><span class="stat-l">AKURASI AI</span></div>
+    <div class="stat-box"><span class="n" id="stTotal">—</span><span class="l">TOTAL MEMORI</span></div>
+    <div class="stat-box"><span class="n" id="stPos">—</span><span class="l">SKOR POSITIF</span></div>
+    <div class="stat-box"><span class="n" id="stNeg">—</span><span class="l">SKOR NEGATIF</span></div>
+    <div class="stat-box"><span class="n" id="stAcc">—</span><span class="l">AKURASI AI</span></div>
   </div>
 
   <!-- ADD FORM -->
-  <div class="add-form" id="addForm">
-    <div class="form-title">+ TAMBAH PERTANYAAN & JAWABAN BARU</div>
-    <div class="fg"><label class="fl">PERTANYAAN</label><input type="text" class="fi" id="nQ" placeholder="Tulis pertanyaan..."/></div>
-    <div class="fg"><label class="fl">JAWABAN LENGKAP</label><textarea class="ft" id="nA" placeholder="Tulis jawaban yang informatif dan lengkap..."></textarea></div>
-    <div class="form-row">
-      <div class="fg"><label class="fl">SKOR AWAL (0-10)</label><input type="number" class="fi" id="nS" value="5" min="0" max="10"/></div>
-      <div class="fg"><label class="fl">CATATAN SUMBER (opsional)</label><input type="text" class="fi" id="nN" placeholder="Misal: Wikipedia, buku, dsb..."/></div>
+  <div id="addForm">
+    <h3>+ TAMBAH PERTANYAAN & JAWABAN BARU</h3>
+    <div class="fg">
+      <label class="fl">PERTANYAAN *</label>
+      <input class="fi" id="fQ" type="text" placeholder="Tulis pertanyaan di sini..."/>
     </div>
-    <div class="fa">
-      <button class="btn-cancel" onclick="toggleForm()">Batal</button>
-      <button class="btn-save" id="btnSave" onclick="saveMemory()">
+    <div class="fg">
+      <label class="fl">JAWABAN LENGKAP *</label>
+      <textarea class="ft" id="fA" placeholder="Tulis jawaban yang lengkap dan informatif..."></textarea>
+    </div>
+    <div class="form2col">
+      <div class="fg">
+        <label class="fl">SKOR AWAL (0–10)</label>
+        <input class="fi" id="fS" type="number" value="5" min="0" max="10"/>
+      </div>
+      <div class="fg">
+        <label class="fl">SUMBER (opsional)</label>
+        <input class="fi" id="fN" type="text" placeholder="Misal: Wikipedia, buku pelajaran..."/>
+      </div>
+    </div>
+    <div class="form-btns">
+      <button class="btn-cx" onclick="toggleForm()">Batal</button>
+      <button class="btn-sv" id="btnSv" onclick="doSave()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
         SIMPAN KE DATABASE
       </button>
@@ -186,17 +330,17 @@
 
   <!-- TOOLBAR -->
   <div class="toolbar">
-    <div class="sw">
-      <svg class="si" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" class="search" id="qSearch" placeholder="Cari pertanyaan atau jawaban..." oninput="doSearch()"/>
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="qSearch" type="text" placeholder="Cari pertanyaan atau jawaban..." oninput="doFilter()"/>
     </div>
-    <select class="fsel" id="fScore" onchange="doSearch()">
+    <select class="sel" id="selScore" onchange="doFilter()">
       <option value="all">Semua Skor</option>
-      <option value="pos">Skor Positif</option>
-      <option value="neu">Skor Netral (0)</option>
-      <option value="neg">Skor Negatif</option>
+      <option value="pos">Skor Positif (≥1)</option>
+      <option value="zero">Skor Netral (0)</option>
+      <option value="neg">Skor Negatif (≤-1)</option>
     </select>
-    <select class="fsel" id="fSort" onchange="doSearch()">
+    <select class="sel" id="selSort" onchange="doFilter()">
       <option value="sd">Skor Tertinggi</option>
       <option value="sa">Skor Terendah</option>
       <option value="new">Terbaru</option>
@@ -208,312 +352,447 @@
     </button>
   </div>
 
-  <div class="ri" id="ri">Memuat data...</div>
+  <div class="rinfo" id="rinfo">Memuat data...</div>
 
   <!-- TABLE -->
-  <div class="tw">
+  <div class="tbox">
     <table>
       <thead>
         <tr>
-          <th class="tno">#</th>
-          <th>PERTANYAAN</th>
-          <th>JAWABAN (RINGKAS)</th>
+          <th class="td-num">#</th>
+          <th style="min-width:200px">PERTANYAAN</th>
+          <th style="min-width:240px">JAWABAN (RINGKAS)</th>
           <th>SKOR</th>
           <th>TANGGAL</th>
-          <th>DETAIL</th>
+          <th>LIHAT</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="6" class="lc">⟳ MEMUAT DATA DARI DATABASE...</td></tr>
+        <tr><td colspan="6" class="loading-cell">⟳ MEMUAT DATA...</td></tr>
       </tbody>
     </table>
-    <div class="pag" id="pag" style="display:none">
-      <div class="pi" id="pi"></div>
-      <div class="pb" id="pb"></div>
+    <div id="pagBox" class="pag" style="display:none">
+      <span class="pag-info" id="pagInfo"></span>
+      <div class="pag-btns" id="pagBtns"></div>
     </div>
   </div>
 
-  <!-- CLEAR CHAT SECTION -->
-  <div class="cc-section">
-    <div class="cc-title">🗑 BERSIHKAN RIWAYAT CHAT</div>
-    <div class="cc-desc">
-      Hapus riwayat percakapan untuk menghemat storage database. <strong>Pengetahuan AI tidak terpengaruh</strong> — AI tetap pintar, hanya log chat yang dibersihkan.
+  <!-- HAPUS RIWAYAT CHAT -->
+  <div class="cc">
+    <div class="cc-hd">🗑 BERSIHKAN RIWAYAT CHAT</div>
+    <div class="cc-sub">
+      Hapus riwayat percakapan untuk menghemat storage. <strong>Pengetahuan AI tidak terpengaruh</strong> — AI tetap pintar, hanya log percakapan yang dihapus.
     </div>
     <div class="cc-grid">
-
       <div class="cc-card">
         <h4>Chat Lebih dari 30 Hari</h4>
-        <p>Hapus riwayat percakapan yang sudah lebih dari 30 hari lalu. Chat terbaru tetap ada.</p>
-        <button class="btn-clear" onclick="confirmClear('30d')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>Hapus riwayat percakapan lama (&gt;30 hari). Chat terbaru tetap tersimpan.</p>
+        <button class="btn-del" onclick="askClear('30d')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS CHAT 30 HARI LALU
         </button>
       </div>
-
       <div class="cc-card">
         <h4>Chat Lebih dari 7 Hari</h4>
-        <p>Hapus riwayat percakapan yang sudah lebih dari 7 hari lalu. Lebih banyak ruang yang dibebaskan.</p>
-        <button class="btn-clear" onclick="confirmClear('7d')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>Hapus riwayat percakapan lama (&gt;7 hari). Lebih banyak storage yang dibebaskan.</p>
+        <button class="btn-del" onclick="askClear('7d')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS CHAT 7 HARI LALU
         </button>
       </div>
-
       <div class="cc-card">
         <h4>Semua Riwayat Chat</h4>
-        <p>Hapus seluruh riwayat percakapan semua pengguna. Gunakan bila storage hampir penuh.</p>
-        <button class="btn-clear" onclick="confirmClear('all')">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <p>Hapus seluruh riwayat percakapan semua pengguna. Gunakan jika storage hampir penuh.</p>
+        <button class="btn-del" onclick="askClear('all')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
           HAPUS SEMUA RIWAYAT CHAT
         </button>
       </div>
-
     </div>
   </div>
 
-</div>
+</div><!-- /wrap -->
 
 <!-- MODAL: Konfirmasi hapus chat -->
-<div class="mo h" id="mClear">
-  <div class="mb">
-    <div class="mt d" id="mClearTitle">KONFIRMASI HAPUS</div>
-    <div class="mbody" id="mClearBody">Apakah kamu yakin?</div>
-    <div class="mfa">
-      <button class="mfcancel" onclick="hideM('mClear')">Batal</button>
-      <button class="mfconfirm" id="mClearBtn">Ya, Hapus</button>
+<div class="overlay off" id="mClear">
+  <div class="modal">
+    <h3 class="d" id="mClearH">KONFIRMASI HAPUS</h3>
+    <p id="mClearP">Apakah kamu yakin?</p>
+    <div class="modal-foot">
+      <button class="btn-no" onclick="closeM('mClear')">Batal</button>
+      <button class="btn-yes" id="mClearOk">Ya, Hapus</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: Detail jawaban -->
-<div class="mo h" id="mDetail">
-  <div class="mb" style="max-width:580px">
-    <div class="mt i" id="mDQ">—</div>
-    <div class="mabs" id="mDA">—</div>
-    <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-      <span id="mDS" class="sb sm">SKOR: 0</span>
-      <span id="mDD" style="font-family:var(--font-mono);font-size:0.62rem;color:var(--text-muted)"></span>
+<!-- MODAL: Lihat detail jawaban -->
+<div class="overlay off" id="mDetail">
+  <div class="modal" style="max-width:560px">
+    <h3 class="i" id="mDetQ">—</h3>
+    <div class="modal-answer" id="mDetA">—</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px">
+      <span id="mDetS" class="badge b-mi">SKOR: 0</span>
+      <span id="mDetD" style="font-family:var(--fm);font-size:0.62rem;color:var(--t3)"></span>
     </div>
-    <div class="mfa" style="margin-top:20px">
-      <button class="mfcancel" onclick="hideM('mDetail')">Tutup</button>
+    <div class="modal-foot">
+      <button class="btn-no" onclick="closeM('mDetail')">Tutup</button>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-  // ══════════════════════════════════════
-  // CONFIG — isi sama persis dengan app.js
-  // ══════════════════════════════════════
-  const SUPABASE_URL  = 'https://fkyuvapmeiezilwnqrcn.supabase.co';   // ← sama dengan di app.js
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreXV2YXBtZWllemlsd25xcmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDgyMTAsImV4cCI6MjA4OTIyNDIxMH0.7PjJX5IRb-xU7IPlamlnuVy05nbZD59PlgqktbyewMM';  // ← sama dengan di app.js
+// ══════════════════════════════════════════════
+// KONFIGURASI — Isi dengan nilai dari app.js-mu
+// ══════════════════════════════════════════════
+const CFG = {
+  supabaseUrl:  'https://fkyuvapmeiezilwnqrcn.supabase.co',   // contoh: https://abcxyz.supabase.co
+  supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreXV2YXBtZWllemlsd25xcmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDgyMTAsImV4cCI6MjA4OTIyNDIxMH0.7PjJX5IRb-xU7IPlamlnuVy05nbZD59PlgqktbyewMM',  // anon/public key dari Supabase
+};
 
-  const sb = supabase.createClient(SURL, SANON);
+// ══════════════════════════════════════════════
+// INISIALISASI SUPABASE
+// ══════════════════════════════════════════════
+const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnon);
 
-  let all = [], fil = [], page = 1;
-  const PER = 20;
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let allRows  = [];   // semua data dari database
+let filtered = [];   // setelah filter/search
+let curPage  = 1;
+const PER_PAGE = 20;
+let pendingAction = null;
 
-  // ══ LOAD ══
-  async function load() {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="6" class="lc">⟳ MEMUAT...</td></tr>';
-    const { data, error } = await sb.from('ai_memory').select('*').order('score', { ascending: false });
-    if (error) {
-      document.getElementById('tbody').innerHTML = `<tr><td colspan="6" class="lc" style="color:var(--magenta)">❌ ${error.message}</td></tr>`;
-      return;
-    }
-    all = data || [];
-    updateStats();
-    doSearch();
+// ══════════════════════════════════════════════
+// LOAD DATA DARI DATABASE
+// ══════════════════════════════════════════════
+async function loadData() {
+  setTbody('<tr><td colspan="6" class="loading-cell">⟳ MEMUAT DATA DARI DATABASE...</td></tr>');
+
+  const { data, error } = await sb
+    .from('ai_memory')
+    .select('id, question, answer, score, created_at')
+    .order('score', { ascending: false });
+
+  if (error) {
+    setTbody(`<tr><td colspan="6" class="loading-cell" style="color:var(--magenta)">❌ GAGAL MEMUAT: ${error.message}<br><br><small>Pastikan SUPABASE_URL dan SUPABASE_ANON sudah diisi dengan benar di file ini.</small></td></tr>`);
+    toast('Gagal memuat data: ' + error.message, 'err');
+    return;
   }
 
-  // ══ STATS ══
-  function updateStats() {
-    const pos = all.filter(d => d.score > 0).length;
-    const neg = all.filter(d => d.score < 0).length;
-    document.getElementById('sTotal').textContent = all.length.toLocaleString('id-ID');
-    document.getElementById('sPos').textContent   = pos.toLocaleString('id-ID');
-    document.getElementById('sNeg').textContent   = neg.toLocaleString('id-ID');
-    document.getElementById('sAcc').textContent   = all.length ? Math.round(pos/all.length*100)+'%' : '—';
-  }
+  allRows = data || [];
+  updateStats();
+  doFilter();
+  toast('✓ ' + allRows.length + ' data berhasil dimuat', 'ok');
+}
 
-  // ══ SEARCH ══
-  function doSearch() {
-    const q = document.getElementById('qSearch').value.toLowerCase().trim();
-    const sf = document.getElementById('fScore').value;
-    const so = document.getElementById('fSort').value;
+// ══════════════════════════════════════════════
+// UPDATE STATISTIK
+// ══════════════════════════════════════════════
+function updateStats() {
+  const pos = allRows.filter(r => r.score > 0).length;
+  const neg = allRows.filter(r => r.score < 0).length;
+  const acc = allRows.length > 0 ? Math.round(pos / allRows.length * 100) : 0;
+  document.getElementById('stTotal').textContent = allRows.length.toLocaleString('id-ID');
+  document.getElementById('stPos').textContent   = pos.toLocaleString('id-ID');
+  document.getElementById('stNeg').textContent   = neg.toLocaleString('id-ID');
+  document.getElementById('stAcc').textContent   = acc + '%';
+}
 
-    fil = all.filter(r => {
-      const mq = !q || r.question.toLowerCase().includes(q) || r.answer.toLowerCase().includes(q);
-      const ms = sf==='all'?true: sf==='pos'?r.score>0: sf==='neu'?r.score===0: r.score<0;
-      return mq && ms;
-    }).sort((a,b) =>
-      so==='sd'? b.score-a.score: so==='sa'? a.score-b.score:
-      so==='new'? new Date(b.created_at)-new Date(a.created_at): new Date(a.created_at)-new Date(b.created_at)
-    );
-    page = 1;
-    render();
-  }
+// ══════════════════════════════════════════════
+// FILTER + SORT + SEARCH
+// ══════════════════════════════════════════════
+function doFilter() {
+  const q  = (document.getElementById('qSearch').value || '').toLowerCase().trim();
+  const sc = document.getElementById('selScore').value;
+  const so = document.getElementById('selSort').value;
 
-  // ══ RENDER ══
-  function render() {
-    const tbody = document.getElementById('tbody');
-    const q = document.getElementById('qSearch').value;
-    const total = fil.length;
-
-    document.getElementById('ri').innerHTML =
-      `Menampilkan <span>${Math.min((page-1)*PER+PER, total)}</span> dari <span>${total}</span> data` +
-      (q ? ` — "<span>${esc(q)}</span>"` : '');
-
-    if (!total) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="es"><div class="ei">🔍</div><p>TIDAK ADA DATA YANG COCOK</p></div></td></tr>';
-      document.getElementById('pag').style.display = 'none';
-      return;
-    }
-
-    const start = (page-1)*PER;
-    const rows = fil.slice(start, start+PER);
-
-    tbody.innerHTML = rows.map((r, i) => {
-      const cls  = r.score>3?'sh':r.score>=0?'sm':'sl';
-      const sign = r.score>0?'+':'';
-      const date = r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-      const shortA = r.answer.length > 85 ? r.answer.slice(0,85)+'...' : r.answer;
-      return `<tr>
-        <td class="tno">${start+i+1}</td>
-        <td class="tq">${esc(r.question)}</td>
-        <td class="ta">${esc(shortA)}</td>
-        <td><span class="sb ${cls}">${sign}${r.score}</span></td>
-        <td style="font-family:var(--font-mono);font-size:0.63rem;color:var(--text-muted);white-space:nowrap">${date}</td>
-        <td><button class="btn-eye" title="Lihat jawaban lengkap" onclick="showDetail('${r.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button></td>
-      </tr>`;
-    }).join('');
-
-    renderPag(total);
-  }
-
-  function renderPag(total) {
-    const tp = Math.ceil(total/PER);
-    const pg = document.getElementById('pag');
-    if (tp<=1) { pg.style.display='none'; return; }
-    pg.style.display='flex';
-    const s=(page-1)*PER+1, e=Math.min(page*PER,total);
-    document.getElementById('pi').textContent = `${s}–${e} dari ${total}`;
-    let h = `<button class="pbtn" onclick="gp(${page-1})" ${page===1?'disabled':''}>‹</button>`;
-    for (let i=1;i<=tp;i++) {
-      if (tp>7 && Math.abs(i-page)>2 && i!==1 && i!==tp) { if(i===page-3||i===page+3) h+=`<span style="color:var(--text-muted);padding:0 3px">…</span>`; continue; }
-      h += `<button class="pbtn ${i===page?'act':''}" onclick="gp(${i})">${i}</button>`;
-    }
-    h += `<button class="pbtn" onclick="gp(${page+1})" ${page===tp?'disabled':''}>›</button>`;
-    document.getElementById('pb').innerHTML = h;
-  }
-
-  function gp(p) {
-    const max = Math.ceil(fil.length/PER);
-    if (p<1||p>max) return;
-    page=p; render(); window.scrollTo({top:0,behavior:'smooth'});
-  }
-
-  // ══ DETAIL ══
-  function showDetail(id) {
-    const r = all.find(d=>d.id===id); if (!r) return;
-    document.getElementById('mDQ').textContent = r.question;
-    document.getElementById('mDA').textContent = r.answer;
-    const sc = document.getElementById('mDS');
-    sc.textContent = `SKOR: ${r.score>0?'+':''}${r.score}`;
-    sc.className = `sb ${r.score>3?'sh':r.score>=0?'sm':'sl'}`;
-    document.getElementById('mDD').textContent = r.created_at ? new Date(r.created_at).toLocaleString('id-ID') : '';
-    showM('mDetail');
-  }
-
-  // ══ ADD FORM ══
-  function toggleForm() {
-    const f = document.getElementById('addForm');
-    f.classList.toggle('open');
-    if (f.classList.contains('open')) { document.getElementById('nQ').focus(); f.scrollIntoView({behavior:'smooth',block:'start'}); }
-  }
-
-  async function saveMemory() {
-    const q = document.getElementById('nQ').value.trim();
-    const a = document.getElementById('nA').value.trim();
-    const s = parseInt(document.getElementById('nS').value)||5;
-    if (!q) { toast('Pertanyaan tidak boleh kosong!','error'); return; }
-    if (!a) { toast('Jawaban tidak boleh kosong!','error'); return; }
-
-    const btn = document.getElementById('btnSave');
-    btn.textContent = '⟳ MENYIMPAN...'; btn.disabled = true;
-
-    const { data, error } = await sb.from('ai_memory').insert({question:q,answer:a,score:s}).select().single();
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>SIMPAN KE DATABASE`;
-    btn.disabled = false;
-
-    if (error) { toast('Gagal: '+error.message,'error'); return; }
-    all.unshift(data);
-    updateStats(); doSearch();
-    toast('✓ Pertanyaan & jawaban berhasil disimpan!','success');
-    document.getElementById('nQ').value=''; document.getElementById('nA').value='';
-    document.getElementById('nS').value='5'; document.getElementById('nN').value='';
-    document.getElementById('addForm').classList.remove('open');
-  }
-
-  // ══ CLEAR CHAT ══
-  let pendingClear = null;
-
-  function confirmClear(type) {
-    pendingClear = type;
-    const t = { '30d':'HAPUS CHAT LEBIH DARI 30 HARI', '7d':'HAPUS CHAT LEBIH DARI 7 HARI', 'all':'HAPUS SEMUA RIWAYAT CHAT' };
-    const b = {
-      '30d': 'Ini akan menghapus semua riwayat percakapan yang <strong>sudah lebih dari 30 hari</strong>.<br><br>Pengetahuan AI tetap aman — hanya log chat yang dihapus.<br><br>Lanjutkan?',
-      '7d':  'Ini akan menghapus semua riwayat percakapan yang <strong>sudah lebih dari 7 hari</strong>.<br><br>Pengetahuan AI tetap aman — hanya log chat yang dihapus.<br><br>Lanjutkan?',
-      'all': 'Ini akan menghapus <strong>seluruh riwayat percakapan</strong> semua pengguna.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
-    };
-    document.getElementById('mClearTitle').textContent = t[type];
-    document.getElementById('mClearBody').innerHTML    = b[type];
-    showM('mClear');
-  }
-
-  document.getElementById('mClearBtn').addEventListener('click', async () => {
-    hideM('mClear');
-    toast('⟳ Menghapus riwayat chat...','');
-    try {
-      let res;
-      if (pendingClear==='30d') {
-        const c = new Date(Date.now()-30*864e5).toISOString();
-        res = await sb.from('chat_history').delete().lt('timestamp',c);
-      } else if (pendingClear==='7d') {
-        const c = new Date(Date.now()-7*864e5).toISOString();
-        res = await sb.from('chat_history').delete().lt('timestamp',c);
-      } else {
-        res = await sb.from('chat_history').delete().neq('id','00000000-0000-0000-0000-000000000000');
-      }
-      if (res?.error) toast('Gagal: '+res.error.message,'error');
-      else toast('✓ Riwayat chat berhasil dihapus!','success');
-    } catch(e) { toast('Error: '+e.message,'error'); }
-    pendingClear = null;
+  filtered = allRows.filter(r => {
+    const matchQ = !q || r.question.toLowerCase().includes(q) || r.answer.toLowerCase().includes(q);
+    const matchS = sc === 'all'  ? true
+                 : sc === 'pos'  ? r.score > 0
+                 : sc === 'zero' ? r.score === 0
+                 : r.score < 0;
+    return matchQ && matchS;
   });
 
-  // ══ MODAL ══
-  function showM(id) { document.getElementById(id).classList.remove('h'); }
-  function hideM(id) { document.getElementById(id).classList.add('h'); }
-  document.querySelectorAll('.mo').forEach(el => el.addEventListener('click', e => { if(e.target===el) el.classList.add('h'); }));
+  filtered.sort((a, b) =>
+    so === 'sd'  ? b.score - a.score
+    : so === 'sa'  ? a.score - b.score
+    : so === 'new' ? new Date(b.created_at) - new Date(a.created_at)
+    : new Date(a.created_at) - new Date(b.created_at)
+  );
 
-  // ══ TOAST ══
-  let _tt;
-  function toast(msg,type='') {
-    const t=document.getElementById('toast');
-    t.textContent=msg; t.className=`show ${type}`;
-    clearTimeout(_tt); _tt=setTimeout(()=>t.className='',3200);
+  curPage = 1;
+  renderTable();
+}
+
+// ══════════════════════════════════════════════
+// RENDER TABEL
+// ══════════════════════════════════════════════
+function renderTable() {
+  const total = filtered.length;
+  const q     = document.getElementById('qSearch').value;
+
+  // Update info
+  document.getElementById('rinfo').innerHTML =
+    `Menampilkan <b>${Math.min((curPage - 1) * PER_PAGE + PER_PAGE, total)}</b> dari <b>${total}</b> data` +
+    (q ? ` — pencarian "<b>${x(q)}</b>"` : '');
+
+  // Kosong
+  if (total === 0) {
+    setTbody('<tr><td colspan="6"><div class="empty-cell"><span class="ico">🔍</span><p>TIDAK ADA DATA YANG COCOK</p></div></td></tr>');
+    document.getElementById('pagBox').style.display = 'none';
+    return;
   }
 
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  const start  = (curPage - 1) * PER_PAGE;
+  const sliced = filtered.slice(start, start + PER_PAGE);
 
-  document.getElementById('qSearch').addEventListener('keydown', e => { if(e.key==='Escape'){e.target.value='';doSearch();} });
+  const rows = sliced.map((r, i) => {
+    const cls  = r.score > 3 ? 'b-hi' : r.score >= 0 ? 'b-mi' : 'b-lo';
+    const sign = r.score > 0 ? '+' : '';
+    const shortA = r.answer.length > 88 ? r.answer.slice(0, 88) + '…' : r.answer;
+    const date   = r.created_at
+      ? new Date(r.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'2-digit' })
+      : '—';
 
-  // ══ INIT ══
-  load();
+    return `<tr>
+      <td class="td-num">${start + i + 1}</td>
+      <td class="td-q">${x(r.question)}</td>
+      <td class="td-a">${x(shortA)}</td>
+      <td><span class="badge ${cls}">${sign}${r.score}</span></td>
+      <td style="font-family:var(--fm);font-size:0.62rem;color:var(--t3);white-space:nowrap">${date}</td>
+      <td>
+        <button class="btn-see" onclick="showDetail('${r.id}')" title="Lihat jawaban lengkap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  setTbody(rows.join(''));
+  renderPagination(total);
+}
+
+function renderPagination(total) {
+  const tp  = Math.ceil(total / PER_PAGE);
+  const box = document.getElementById('pagBox');
+
+  if (tp <= 1) { box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+
+  const s = (curPage - 1) * PER_PAGE + 1;
+  const e = Math.min(curPage * PER_PAGE, total);
+  document.getElementById('pagInfo').textContent = `${s}–${e} dari ${total}`;
+
+  let h = `<button class="pb" onclick="goPage(${curPage - 1})" ${curPage === 1 ? 'disabled' : ''}>‹ Prev</button>`;
+  for (let i = 1; i <= tp; i++) {
+    if (tp > 7 && Math.abs(i - curPage) > 2 && i !== 1 && i !== tp) {
+      if (i === curPage - 3 || i === curPage + 3) h += `<span style="color:var(--t3);padding:0 3px">…</span>`;
+      continue;
+    }
+    h += `<button class="pb ${i === curPage ? 'on' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  h += `<button class="pb" onclick="goPage(${curPage + 1})" ${curPage === tp ? 'disabled' : ''}>Next ›</button>`;
+  document.getElementById('pagBtns').innerHTML = h;
+}
+
+function goPage(p) {
+  const max = Math.ceil(filtered.length / PER_PAGE);
+  if (p < 1 || p > max) return;
+  curPage = p;
+  renderTable();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════
+// LIHAT DETAIL
+// ══════════════════════════════════════════════
+function showDetail(id) {
+  const r = allRows.find(d => d.id === id);
+  if (!r) return;
+
+  document.getElementById('mDetQ').textContent = r.question;
+  document.getElementById('mDetA').textContent = r.answer;
+
+  const sc = document.getElementById('mDetS');
+  sc.textContent = `SKOR: ${r.score > 0 ? '+' : ''}${r.score}`;
+  sc.className   = `badge ${r.score > 3 ? 'b-hi' : r.score >= 0 ? 'b-mi' : 'b-lo'}`;
+
+  document.getElementById('mDetD').textContent = r.created_at
+    ? new Date(r.created_at).toLocaleString('id-ID') : '';
+
+  openM('mDetail');
+}
+
+// ══════════════════════════════════════════════
+// FORM TAMBAH PERTANYAAN
+// ══════════════════════════════════════════════
+function toggleForm() {
+  const f = document.getElementById('addForm');
+  const isOpen = f.classList.contains('show');
+  if (isOpen) {
+    f.classList.remove('show');
+  } else {
+    f.classList.add('show');
+    setTimeout(() => document.getElementById('fQ').focus(), 50);
+    f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+async function doSave() {
+  const q = (document.getElementById('fQ').value || '').trim();
+  const a = (document.getElementById('fA').value || '').trim();
+  const s = parseInt(document.getElementById('fS').value) || 5;
+
+  if (!q) { toast('Pertanyaan tidak boleh kosong!', 'err'); document.getElementById('fQ').focus(); return; }
+  if (!a) { toast('Jawaban tidak boleh kosong!', 'err'); document.getElementById('fA').focus(); return; }
+
+  const btn = document.getElementById('btnSv');
+  btn.textContent = '⟳ Menyimpan...';
+  btn.disabled = true;
+
+  const { data, error } = await sb
+    .from('ai_memory')
+    .insert([{ question: q, answer: a, score: s }])
+    .select()
+    .single();
+
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>SIMPAN KE DATABASE`;
+  btn.disabled = false;
+
+  if (error) {
+    toast('Gagal menyimpan: ' + error.message, 'err');
+    return;
+  }
+
+  // Tambah ke state lokal
+  allRows.unshift(data);
+  updateStats();
+  doFilter();
+
+  // Reset form
+  document.getElementById('fQ').value = '';
+  document.getElementById('fA').value = '';
+  document.getElementById('fS').value = '5';
+  document.getElementById('fN').value = '';
+  document.getElementById('addForm').classList.remove('show');
+
+  toast('✓ Pertanyaan & jawaban berhasil disimpan!', 'ok');
+}
+
+// ══════════════════════════════════════════════
+// HAPUS RIWAYAT CHAT
+// ══════════════════════════════════════════════
+function askClear(type) {
+  pendingAction = type;
+
+  const titles = {
+    '30d': 'HAPUS CHAT LEBIH DARI 30 HARI',
+    '7d':  'HAPUS CHAT LEBIH DARI 7 HARI',
+    'all': 'HAPUS SEMUA RIWAYAT CHAT',
+  };
+  const bodies = {
+    '30d': 'Ini akan menghapus semua riwayat percakapan yang sudah lebih dari <strong>30 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
+    '7d':  'Ini akan menghapus semua riwayat percakapan yang sudah lebih dari <strong>7 hari lalu</strong>.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
+    'all': 'Ini akan menghapus <strong>seluruh riwayat percakapan</strong> semua pengguna.<br><br>Pengetahuan AI tidak terpengaruh — AI tetap pintar seperti biasa.<br><br>Lanjutkan?',
+  };
+
+  document.getElementById('mClearH').textContent = titles[type];
+  document.getElementById('mClearP').innerHTML   = bodies[type];
+  openM('mClear');
+}
+
+document.getElementById('mClearOk').addEventListener('click', async () => {
+  closeM('mClear');
+  toast('⟳ Menghapus riwayat chat...', '');
+
+  try {
+    let res, msg;
+
+    if (pendingAction === '30d') {
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      res = await sb.from('chat_history').delete().lt('timestamp', cutoff);
+      msg = 'Riwayat chat lebih dari 30 hari berhasil dihapus!';
+
+    } else if (pendingAction === '7d') {
+      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      res = await sb.from('chat_history').delete().lt('timestamp', cutoff);
+      msg = 'Riwayat chat lebih dari 7 hari berhasil dihapus!';
+
+    } else if (pendingAction === 'all') {
+      // Hapus semua — pakai gt id kosong sebagai workaround RLS
+      res = await sb.from('chat_history').delete().gte('id', '00000000-0000-0000-0000-000000000000');
+      msg = 'Semua riwayat chat berhasil dihapus!';
+    }
+
+    if (res && res.error) {
+      toast('Gagal: ' + res.error.message, 'err');
+    } else {
+      toast('✓ ' + msg, 'ok');
+    }
+  } catch (e) {
+    toast('Error: ' + e.message, 'err');
+  }
+
+  pendingAction = null;
+});
+
+// ══════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════
+function openM(id)  { document.getElementById(id).classList.remove('off'); }
+function closeM(id) { document.getElementById(id).classList.add('off'); }
+
+// Klik di luar modal = tutup
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.add('off'); });
+});
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3500);
+}
+
+// ══════════════════════════════════════════════
+// HELPER: escape HTML
+// ══════════════════════════════════════════════
+function x(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function setTbody(html) {
+  document.getElementById('tbody').innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+// ESC key untuk tutup search
+// ══════════════════════════════════════════════
+document.getElementById('qSearch').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.target.value = ''; doFilter(); }
+});
+
+// ══════════════════════════════════════════════
+// MULAI
+// ══════════════════════════════════════════════
+loadData();
 </script>
 </body>
 </html>
