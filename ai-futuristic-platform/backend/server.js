@@ -134,7 +134,7 @@ app.delete('/api/chat/clear', async (req, res) => {
 // ─── MEMORY ROUTES ───
 app.get('/api/memory', async (req, res) => {
   try {
-    const memories = await db.getAllMemories({ limit: 200 });
+    const memories = await db.getAllMemories({ limit: 100000 });
     res.json({ memories });
   } catch (err) {
     res.status(500).json({ error: 'Could not load memories' });
